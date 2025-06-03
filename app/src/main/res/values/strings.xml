@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">PhoCraft</string>
+    <string name="to_setting">Go to setting</string>
+    <string name="necessary_permission">Nescessary Permission</string>
+    <string name="no_thanks_">No Thanks</string>
+    <string name="allow">Allow</string>
+    <string name="message_dialog_request_permission">The app needs photo access permission.</string>
+    <string name="lb_can_not_work_properly">The app cannot function properly without permission to read photos.</string>
 </resources>

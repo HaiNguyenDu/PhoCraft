@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="@dimen/size_8">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/size_12"
+        android:background="@drawable/bg_permission_dialog"
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/size_12"
+            android:gravity="center"
+            android:paddingVertical="@dimen/size_8"
+            android:text="@string/necessary_permission"
+            android:textColor="@color/black"
+            android:textSize="@dimen/font_16"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingHorizontal="@dimen/size_16"
+            android:paddingVertical="@dimen/size_8"
+            android:textColor="@color/black"
+            android:textSize="@dimen/font_14" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/size_10"
+            android:paddingBottom="@dimen/size_25">
+
+            <TextView
+                android:id="@+id/btn_cancel"
+                android:layout_width="@dimen/size_0"
+                android:layout_height="@dimen/size_40"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="@string/no_thanks_"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_14" />
+
+            <TextView
+                android:id="@+id/btn_ok"
+                android:layout_width="@dimen/size_0"
+                android:layout_height="@dimen/size_40"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:minWidth="@dimen/size_100"
+                android:text="@string/allow"
+                android:textAllCaps="false"
+                android:textColor="@color/teal_700"
+                android:textSize="@dimen/font_14" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
