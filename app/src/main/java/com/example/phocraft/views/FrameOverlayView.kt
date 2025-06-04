@@ -1,11 +1,13 @@
 package com.example.phocraft.views
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import android.view.Window
+import android.view.animation.DecelerateInterpolator
 import com.example.phocraft.R
 import com.example.phocraft.enum.CameraSize
 import com.example.phocraft.utils.GetSizeCameraHelper
@@ -35,10 +37,23 @@ class FrameOverlayView(
     }
 
     fun setSize(window: Window, cameraSize: CameraSize) {
-        val (heightTarget, topOffset) = GetSizeCameraHelper.getSize(window, cameraSize)
-        targetHeight = heightTarget
-        top = topOffset
-        invalidate()
-    }
+        val (newTargetHeight, newTop) = GetSizeCameraHelper.getSize(window, cameraSize)
+
+        val startTop = top
+        val startHeight = targetHeight
+
+        val animator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 300
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { animation ->
+                val fraction = animation.animatedValue as Float
+                top = startTop + (newTop - startTop) * fraction
+                targetHeight = startHeight + (newTargetHeight - startHeight) * fraction
+                invalidate()
+            }
+        }
+
+        animator.start()
+        }
 }
 

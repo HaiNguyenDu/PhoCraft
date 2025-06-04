@@ -1,6 +1,8 @@
 package com.example.phocraft.ui.camera
 
 import android.os.Bundle
+import android.transition.AutoTransition
+import android.transition.TransitionManager
 import android.util.Log
 import android.util.Size
 import android.view.View
@@ -18,6 +20,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.children
 import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityCameraBinding
 import com.example.phocraft.enum.CameraSize
@@ -53,6 +56,65 @@ class CameraActivity : AppCompatActivity() {
                 layoutBtn.startAnimation(animation)
                 layoutBtn.visibility = View.VISIBLE
             }
+
+            layoutBtn.apply {
+                btnSizeMain.setOnClickListener {
+                    toggleSizeOptions()
+                }
+                option43.setOnClickListener {
+                    currentSize = CameraSize.S4_3
+                    toggleSizeOptions()
+                }
+                option169.setOnClickListener {
+
+                    currentSize = CameraSize.S16_9
+                    toggleSizeOptions()
+                }
+                optionFull.setOnClickListener {
+                    currentSize = CameraSize.SFull
+                    toggleSizeOptions()
+                }
+                option11.setOnClickListener {
+                    currentSize = CameraSize.S1_1
+                    toggleSizeOptions()
+                }
+            }
+        }
+    }
+
+    private fun setTextBtnSize() {
+        binding.apply {
+            when (currentSize) {
+                CameraSize.S4_3 -> textCurrentSize.text = getString(R.string._4_3)
+                CameraSize.S16_9 -> textCurrentSize.text = getString(R.string._16_9)
+                CameraSize.S1_1 -> textCurrentSize.text = getString(R.string._1_1)
+                CameraSize.SFull -> textCurrentSize.text = getString(R.string.full)
+            }
+        }
+    }
+
+    private fun toggleSizeOptions() {
+        setTextBtnSize()
+        val isSizeOptionsExpanded = binding.layoutSize.visibility != View.VISIBLE
+        val transition = AutoTransition().apply {
+            duration = 200
+        }
+        TransitionManager.beginDelayedTransition(binding.layoutBtn, transition)
+
+        if (isSizeOptionsExpanded) {
+            binding.layoutSize.visibility = View.VISIBLE
+            setOtherButtonsVisibility(binding.btnSize, View.GONE)
+        } else {
+            binding.layoutSize.visibility = View.GONE
+            setOtherButtonsVisibility(binding.btnSize, View.VISIBLE)
+        }
+        binding.overlayView.setSize(window, currentSize)
+    }
+
+    private fun setOtherButtonsVisibility(currBtn: View, visibility: Int) {
+        binding.layoutBtn.children.forEach { childView ->
+            if (childView != currBtn)
+                childView.visibility = visibility
         }
     }
 
@@ -117,6 +179,4 @@ class CameraActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
     }
-
-
 }

@@ -13,7 +13,7 @@ object GetSizeCameraHelper {
         when (cameraSize) {
             CameraSize.S1_1 -> {
                 val targetHeight = width
-                val top = ((height - targetHeight) / 2) - ((height - targetHeight) / 4)
+                val top = ((height - targetHeight) / 2)
                 size.add(targetHeight)
                 size.add(top)
             }

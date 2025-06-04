@@ -61,97 +61,155 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btn_camera" />
 
-    <HorizontalScrollView
+    <LinearLayout
         android:id="@+id/layout_btn"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="@dimen/size_50"
-        android:layout_marginEnd="@dimen/size_20"
+        android:layout_marginHorizontal="@dimen/size_20"
         android:layout_marginBottom="@dimen/size_15"
+        android:gravity="center"
         android:orientation="horizontal"
-        android:scrollbars="none"
-        android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/btn_camera"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <FrameLayout
+            android:id="@+id/btn_light"
+            android:layout_width="@dimen/size_50"
+            android:layout_height="@dimen/size_50"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera">
+
+            <ImageView
+                android:layout_width="@dimen/size_26"
+                android:layout_height="@dimen/size_28"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_plus_minus" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btn_filter"
+            android:layout_width="@dimen/size_50"
+            android:layout_height="@dimen/size_50"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera">
+
+            <ImageView
+                android:layout_width="@dimen/size_24"
+                android:layout_height="@dimen/size_20"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_filter" />
+        </FrameLayout>
+
         <LinearLayout
-            android:id="@+id/linear_btn"
+            android:id="@+id/btn_size"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/size_50"
-            android:layout_marginHorizontal="@dimen/size_20"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toTopOf="@+id/btn_camera"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-            <FrameLayout
-                android:id="@+id/btn_light"
-                android:layout_width="@dimen/size_50"
-                android:layout_height="@dimen/size_50"
-                android:layout_marginEnd="@dimen/size_20"
-                android:background="@drawable/bg_btn_camera">
-                <ImageView
-                    android:layout_width="@dimen/size_26"
-                    android:layout_height="@dimen/size_28"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_plus_minus" />
-            </FrameLayout>
-            <FrameLayout
-                android:id="@+id/btn_filter"
-                android:layout_width="@dimen/size_50"
-                android:layout_height="@dimen/size_50"
-                android:layout_marginEnd="@dimen/size_20"
-                android:background="@drawable/bg_btn_camera">
-
-                <ImageView
-                    android:layout_width="@dimen/size_24"
-                    android:layout_height="@dimen/size_20"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_filter" />
-            </FrameLayout>
+            android:layout_gravity="center_vertical"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera"
+            android:minWidth="@dimen/size_50"
+            android:orientation="horizontal">
 
             <FrameLayout
-                android:id="@+id/btn_size"
+                android:id="@+id/btn_size_main"
                 android:layout_width="@dimen/size_50"
                 android:layout_height="@dimen/size_50"
-                android:layout_marginEnd="@dimen/size_20"
                 android:background="@drawable/bg_btn_camera">
 
-                <ImageView
-                    android:layout_width="@dimen/size_24"
-                    android:layout_height="@dimen/size_20"
+                <TextView
+                    android:id="@+id/text_current_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_size" />
+                    android:fontFamily="@font/quicksand_bold"
+                    android:text="4:3"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
             </FrameLayout>
 
-            <FrameLayout
-                android:id="@+id/btn_grid"
-                android:layout_width="@dimen/size_50"
-                android:layout_height="@dimen/size_50"
-                android:layout_marginEnd="@dimen/size_20"
-                android:background="@drawable/bg_btn_camera">
+            <LinearLayout
+                android:id="@+id/layout_size"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:visibility="gone">
 
-                <ImageView
-                    android:layout_width="@dimen/size_27"
-                    android:layout_height="@dimen/size_28"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_grid" />
-            </FrameLayout>
+                <TextView
+                    android:id="@+id/option_1_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/size_30"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:gravity="center"
+                    android:text="@string/_1_1"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
 
-            <FrameLayout
-                android:id="@+id/btn_timer"
-                android:layout_width="@dimen/size_50"
-                android:layout_height="@dimen/size_50"
-                android:layout_marginEnd="@dimen/size_20"
-                android:background="@drawable/bg_btn_camera">
+                <TextView
+                    android:id="@+id/option_4_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/size_30"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:gravity="center"
+                    android:text="@string/_4_3"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
 
-                <ImageView
-                    android:layout_width="@dimen/size_27"
-                    android:layout_height="@dimen/size_27"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_clock" />
-            </FrameLayout>
+                <TextView
+                    android:id="@+id/option_16_9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/size_30"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:gravity="center"
+                    android:text="@string/_16_9"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+
+                <TextView
+                    android:id="@+id/option_full"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/size_30"
+                    android:layout_marginEnd="@dimen/size_30"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:gravity="center"
+                    android:text="@string/full"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+            </LinearLayout>
         </LinearLayout>
-    </HorizontalScrollView>
+
+        <FrameLayout
+            android:id="@+id/btn_grid"
+            android:layout_width="@dimen/size_50"
+            android:layout_height="@dimen/size_50"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera">
+
+            <ImageView
+                android:layout_width="@dimen/size_27"
+                android:layout_height="@dimen/size_28"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_grid" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btn_timer"
+            android:layout_width="@dimen/size_50"
+            android:layout_height="@dimen/size_50"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera">
+
+            <ImageView
+                android:layout_width="@dimen/size_27"
+                android:layout_height="@dimen/size_27"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_clock" />
+        </FrameLayout>
+    </LinearLayout>
 
     <FrameLayout
         android:id="@+id/btn_arrow"
