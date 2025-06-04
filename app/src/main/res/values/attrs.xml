@@ -3,4 +3,22 @@
         <attr name="fullscreenBackgroundColor" format="color" />
         <attr name="fullscreenTextColor" format="color" />
     </declare-styleable>
+    <declare-styleable name="HorizontalExposureSliderView">
+        <attr name="hsv_sliderBackgroundColor" format="color" />
+        <attr name="hsv_scaleColorPositive" format="color" />
+        <attr name="hsv_scaleColorNegative" format="color" />
+        <attr name="hsv_centerIndicatorColor" format="color" />
+        <attr name="hsv_centerIndicatorWidth" format="dimension" />
+        <attr name="hsv_textColorEV" format="color" />
+        <attr name="hsv_textSizeEV" format="dimension" />
+        <attr name="hsv_showValueTextEV" format="boolean" />
+        <attr name="hsv_initialExposureEV" format="float" />
+        <attr name="hsv_minExposureEV" format="float" />
+        <attr name="hsv_maxExposureEV" format="float" />
+        <attr name="hsv_scaleHeight" format="dimension" />
+        <attr name="hsv_pixelsPerEvUnit" format="float" />
+        <attr name="hsv_tickColor" format="color" />
+        <attr name="hsv_majorTickHeight" format="dimension" />
+        <attr name="hsv_minorTickHeight" format="dimension" />
+    </declare-styleable>
 </resources>

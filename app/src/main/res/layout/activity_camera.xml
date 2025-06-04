@@ -26,7 +26,7 @@
         android:id="@+id/btn_camera"
         android:layout_width="@dimen/size_72"
         android:layout_height="@dimen/size_72"
-        android:layout_marginBottom="@dimen/size_72"
+        android:layout_marginBottom="@dimen/size_100"
         android:src="@drawable/ic_rounded_white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -74,19 +74,57 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <FrameLayout
-            android:id="@+id/btn_light"
-            android:layout_width="@dimen/size_50"
-            android:layout_height="@dimen/size_50"
+        <LinearLayout
+            android:id="@+id/btn_light_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginHorizontal="@dimen/size_10"
-            android:background="@drawable/bg_btn_camera">
+            android:background="@drawable/bg_btn_camera"
+            android:minWidth="@dimen/size_50">
 
-            <ImageView
-                android:layout_width="@dimen/size_26"
-                android:layout_height="@dimen/size_28"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_plus_minus" />
-        </FrameLayout>
+            <FrameLayout
+                android:id="@+id/btn_light"
+                android:layout_width="@dimen/size_50"
+                android:layout_height="@dimen/size_50"
+                android:background="@drawable/bg_btn_camera">
+
+                <ImageView
+                    android:layout_width="@dimen/size_26"
+                    android:layout_height="@dimen/size_28"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_plus_minus" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_seek_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tv_light"
+                    android:layout_width="@dimen/size_25"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="@dimen/size_20"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:textColor="@color/yellow"
+                    android:textSize="@dimen/font_14" />
+
+                <SeekBar
+                    android:id="@+id/seekBar"
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:max="100"
+                    android:padding="@dimen/size_0"
+                    android:progress="50"
+                    android:progressDrawable="@drawable/seekbar_progress"
+                    android:thumb="@drawable/seekbar_custom_thumb"
+                    android:visibility="visible" />
+            </LinearLayout>
+        </LinearLayout>
 
         <FrameLayout
             android:id="@+id/btn_filter"
@@ -191,10 +229,11 @@
             android:background="@drawable/bg_btn_camera">
 
             <ImageView
+                android:id="@+id/tv_grid"
                 android:layout_width="@dimen/size_27"
                 android:layout_height="@dimen/size_28"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_grid" />
+                android:src="@drawable/ic_grid_on" />
         </FrameLayout>
 
         <FrameLayout
@@ -216,7 +255,7 @@
         android:id="@+id/btn_arrow"
         android:layout_width="@dimen/size_28"
         android:layout_height="@dimen/size_28"
-        android:layout_marginTop="@dimen/size_35"
+        android:layout_marginTop="@dimen/size_40"
         android:background="@drawable/bg_btn_camera"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -229,4 +268,14 @@
             android:layout_gravity="center"
             android:src="@drawable/ic_arrow_down" />
     </FrameLayout>
+
+    <ImageView
+        android:id="@+id/btn_flash"
+        android:layout_width="@dimen/size_25"
+        android:layout_height="@dimen/size_25"
+        android:layout_marginStart="@dimen/size_20"
+        android:layout_marginTop="@dimen/size_40"
+        android:src="@drawable/ic_flash_off"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

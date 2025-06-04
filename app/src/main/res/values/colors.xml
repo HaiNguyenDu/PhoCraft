@@ -8,6 +8,10 @@
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black_opacity_0.2">#E6000000</color>
-    <color name="bg_btn_camera">#99787880</color>
+    <color name="black_opacity_0.2">#99000000</color>
+    <color name="bg_btn_camera">#55787880</color>
+    <color name="yellow">#FFF8D74A</color>
+    <color name="custom_seekbar_track_color">#60FFFFFF</color>
+    <color name="custom_seekbar_progress_color">#FFF8D74A</color>
+    <color name="custom_seekbar_thumb_color">#FFFFFFFF</color>
 </resources>

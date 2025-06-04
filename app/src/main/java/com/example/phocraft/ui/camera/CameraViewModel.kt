@@ -12,8 +12,6 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
     fun saveImageToGallery(bitmap: Bitmap) {
         viewModelScope.launch {
             val result = repository.saveImage(bitmap)
-
-
         }
     }
 }
