@@ -21,6 +21,8 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.children
+import androidx.core.view.isGone
+import com.bumptech.glide.Glide
 import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityCameraBinding
 import com.example.phocraft.enum.CameraSize
@@ -51,10 +53,29 @@ class CameraActivity : AppCompatActivity() {
     private fun setUpOnClick() {
         binding.apply {
             btnArrow.setOnClickListener {
-                val animation =
-                    AnimationUtils.loadAnimation(this@CameraActivity, R.anim.slide_bottom_to_top)
-                layoutBtn.startAnimation(animation)
-                layoutBtn.visibility = View.VISIBLE
+                if (layoutBtn.isGone) {
+                    val animation =
+                        AnimationUtils.loadAnimation(
+                            this@CameraActivity,
+                            R.anim.slide_bottom_to_top
+                        )
+                    layoutBtn.startAnimation(animation)
+                    layoutBtn.visibility = View.VISIBLE
+                    Glide.with(this@CameraActivity)
+                        .load(R.drawable.ic_arrow_up)
+                        .into(icBtnArrow)
+                } else {
+                    val animation =
+                        AnimationUtils.loadAnimation(
+                            this@CameraActivity,
+                            R.anim.slide_top_to_bottom
+                        )
+                    layoutBtn.startAnimation(animation)
+                    layoutBtn.visibility = View.GONE
+                    Glide.with(this@CameraActivity)
+                        .load(R.drawable.ic_arrow_down)
+                        .into(icBtnArrow)
+                }
             }
 
             layoutBtn.apply {
