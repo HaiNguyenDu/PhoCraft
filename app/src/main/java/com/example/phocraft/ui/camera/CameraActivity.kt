@@ -2,11 +2,13 @@ package com.example.phocraft.ui.camera
 
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.util.Log
 import android.util.Size
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.TextView
@@ -17,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
@@ -31,245 +32,349 @@ import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityCameraBinding
 import com.example.phocraft.enum.CameraSize
 import com.example.phocraft.enum.FlashState
+import com.example.phocraft.enum.TimerState
 import com.example.phocraft.utils.imageProxyToBitmapSinglePlane
 
 class CameraActivity : AppCompatActivity() {
     private val binding by lazy { ActivityCameraBinding.inflate(layoutInflater) }
     private val viewModel: CameraViewModel by viewModels()
+
     private var imageCapture: ImageCapture? = null
+    private var camera: Camera? = null
+    private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
     private var currentSize = CameraSize.S4_3
     private var gridState = true
-    private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-    private var camera: Camera? = null
-    private var currBrightness: Int? = 0
     private var flashState: FlashState = FlashState.OFF
+    private var timerState: TimerState = TimerState.OFF
+    private var currentBrightness: Int? = null
+    private var countDownTimer: CountDownTimer? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
         startCamera()
-        setUpUi()
-        setUpOnClick()
+        setupUi()
+        setupClickListeners()
     }
 
-    private fun setUpUi() {
+    private fun setupUi() {
         binding.overlayView.setSize(window, currentSize)
-        binding.btnCamera.setOnClickListener {
-            takePhoto()
+        updateFlashButtonIcon()
+        updateTimerButtonIcon()
+        updateGridButtonIcon()
+        setTextBtnSize()
+    }
+
+    private fun setupClickListeners() {
+        binding.btnCamera.setOnClickListener { handleCameraClick() }
+        binding.btnTimer.setOnClickListener { toggleTimerControlsVisibility() }
+        binding.btnFlash.setOnClickListener { toggleFlash() }
+        binding.btnSwap.setOnClickListener { swapCamera() }
+        binding.btnArrow.setOnClickListener { toggleMainControlsGroupVisibility() }
+
+        setupMainControlsGroupClickListeners()
+        setupSizeOptionClickListeners()
+        setupTimerOptionClickListeners()
+    }
+
+    private fun toggleFlash() {
+        flashState = when (flashState) {
+            FlashState.OFF -> FlashState.AUTO
+            FlashState.AUTO -> FlashState.ON
+            FlashState.ON -> FlashState.OFF
+        }
+        updateFlashButtonIcon()
+        updateImageCaptureFlashMode()
+    }
+
+    private fun updateFlashButtonIcon() {
+        val iconRes = when (flashState) {
+            FlashState.ON -> R.drawable.ic_flash_on
+            FlashState.OFF -> R.drawable.ic_flash_off
+            FlashState.AUTO -> R.drawable.ic_flash_auto
+        }
+        Glide.with(this).load(iconRes).into(binding.btnFlash)
+    }
+
+    private fun updateImageCaptureFlashMode() {
+        imageCapture?.flashMode = when (flashState) {
+            FlashState.ON -> ImageCapture.FLASH_MODE_ON
+            FlashState.OFF -> ImageCapture.FLASH_MODE_OFF
+            FlashState.AUTO -> ImageCapture.FLASH_MODE_AUTO
         }
     }
 
-    private fun setUpOnClick() {
-        binding.apply {
-            btnFlash.setOnClickListener {
-                when (flashState) {
-                    FlashState.ON -> {
-                        flashState = FlashState.OFF
-                        Glide.with(this@CameraActivity)
-                            .load(R.drawable.ic_flash_off)
-                            .into(btnFlash)
-                        imageCapture?.flashMode = ImageCapture.FLASH_MODE_OFF
-                    }
-
-                    FlashState.OFF -> {
-                        flashState = FlashState.AUTO
-                        Glide.with(this@CameraActivity)
-                            .load(R.drawable.ic_flash_auto)
-                            .into(btnFlash)
-                        imageCapture?.flashMode = ImageCapture.FLASH_MODE_AUTO
-                    }
-
-                    FlashState.AUTO -> {
-                        flashState = FlashState.ON
-                        Glide.with(this@CameraActivity)
-                            .load(R.drawable.ic_flash_on)
-                            .into(btnFlash)
-                        imageCapture?.flashMode = ImageCapture.FLASH_MODE_ON
-                    }
-                }
-            }
-            btnSwap.setOnClickListener {
-                swapCameraSelector()
-            }
-            //btn arrow top
-            btnArrow.setOnClickListener {
-                if (layoutBtn.isGone) {
-                    val animation =
-                        AnimationUtils.loadAnimation(
-                            this@CameraActivity,
-                            R.anim.slide_bottom_to_top
-                        )
-                    layoutBtn.startAnimation(animation)
-                    layoutBtn.visibility = View.VISIBLE
-                    Glide.with(this@CameraActivity)
-                        .load(R.drawable.ic_arrow_up)
-                        .into(icBtnArrow)
-                } else {
-                    val animation =
-                        AnimationUtils.loadAnimation(
-                            this@CameraActivity,
-                            R.anim.slide_top_to_bottom
-                        )
-                    layoutBtn.startAnimation(animation)
-                    layoutBtn.visibility = View.GONE
-                    Glide.with(this@CameraActivity)
-                        .load(R.drawable.ic_arrow_down)
-                        .into(icBtnArrow)
-                }
-            }
-            //layoutbtn
-            layoutBtn.apply {
-                btnLight.setOnClickListener {
-                    btnLightClick()
-                }
-                btnSizeMain.setOnClickListener {
-                    toggleSizeOptions()
-                }
-                btnGrid.setOnClickListener {
-                    gridState = !gridState
-                    binding.overlayView.setGrid(gridState)
-                    if (gridState) {
-                        Glide.with(this@CameraActivity)
-                            .load(R.drawable.ic_grid_on)
-                            .into(tvGrid)
-                    } else Glide.with(this@CameraActivity)
-                        .load(R.drawable.ic_grid_off)
-                        .into(tvGrid)
-                }
-            }
-
-            //list button size
-            btnSize.apply {
-                option43.setOnClickListener {
-                    currentSize = CameraSize.S4_3
-                    toggleSizeOptions()
-                }
-                option169.setOnClickListener {
-
-                    currentSize = CameraSize.S16_9
-                    toggleSizeOptions()
-                }
-                optionFull.setOnClickListener {
-                    currentSize = CameraSize.SFull
-                    toggleSizeOptions()
-                }
-                option11.setOnClickListener {
-                    currentSize = CameraSize.S1_1
-                    toggleSizeOptions()
-                }
-            }
-
+    private fun handleCameraClick() {
+        if (countDownTimer != null) {
+            cancelCountdown()
+        } else {
+            prepareAndTakePhoto()
         }
+    }
+
+    private fun cancelCountdown() {
+        countDownTimer?.cancel()
+        countDownTimer = null
+        binding.overlayView.drawTextCountDown(null)
+        setOtherButtonsVisibility(
+            binding.root,
+            listOf(binding.btnCamera, binding.overlayView, binding.previewView),
+            View.VISIBLE
+        )
+        Glide.with(this)
+            .load(R.drawable.ic_rounded_white)
+            .into(binding.btnCamera)
+    }
+
+    private fun setupMainControlsGroupClickListeners() {
+        binding.apply {
+            btnLight.setOnClickListener { toggleBrightnessControlsVisibility() }
+            btnSize.setOnClickListener { toggleSizeControlsVisibility() }
+            btnGrid.setOnClickListener { toggleGrid() }
+        }
+    }
+
+    private fun setupSizeOptionClickListeners() {
+        binding.apply {
+            option43.setOnClickListener { selectCameraSize(CameraSize.S4_3) }
+            option169.setOnClickListener { selectCameraSize(CameraSize.S16_9) }
+            optionFull.setOnClickListener { selectCameraSize(CameraSize.SFull) }
+            option11.setOnClickListener { selectCameraSize(CameraSize.S1_1) }
+        }
+    }
+
+    private fun selectCameraSize(size: CameraSize) {
+        currentSize = size
+        toggleSizeControlsVisibility()
+    }
+
+    private fun setupTimerOptionClickListeners() {
+        binding.apply {
+            optionT3.setOnClickListener { selectTimerOption(TimerState.T_3) }
+            optionT5.setOnClickListener { selectTimerOption(TimerState.T_5) }
+            optionT10.setOnClickListener { selectTimerOption(TimerState.T_10) }
+            optionOff.setOnClickListener { selectTimerOption(TimerState.OFF) }
+        }
+    }
+
+    private fun selectTimerOption(state: TimerState) {
+        timerState = state
+        toggleTimerControlsVisibility()
+    }
+
+
+    private fun toggleMainControlsGroupVisibility() {
+        val layout = binding.layoutBtn
+        val isExpanding = layout.isGone
+        val animationRes =
+            if (isExpanding) R.anim.slide_bottom_to_top else R.anim.slide_top_to_bottom
+        val arrowIconRes = if (isExpanding) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down
+
+        val animation = AnimationUtils.loadAnimation(this, animationRes)
+        layout.startAnimation(animation)
+        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        Glide.with(this).load(arrowIconRes).into(binding.icBtnArrow)
+    }
+
+    private fun toggleGrid() {
+        gridState = !gridState
+        binding.overlayView.setGrid(gridState)
+        updateGridButtonIcon()
+    }
+
+    private fun updateGridButtonIcon() {
+        val iconRes = if (gridState) R.drawable.ic_grid_on else R.drawable.ic_grid_off
+        Glide.with(this).load(iconRes).into(binding.tvGrid)
     }
 
     private fun setTextBtnSize() {
-        binding.apply {
-            var textView: TextView? = null
-            when (currentSize) {
-                CameraSize.S4_3 -> {
-                    textCurrentSize.text = getString(R.string._4_3)
-                    textView = binding.option43
-                }
+        val (text, selectedOptionView) = when (currentSize) {
+            CameraSize.S4_3 -> getString(R.string._4_3) to binding.option43
+            CameraSize.S16_9 -> getString(R.string._16_9) to binding.option169
+            CameraSize.S1_1 -> getString(R.string._1_1) to binding.option11
+            CameraSize.SFull -> getString(R.string.full) to binding.optionFull
+        }
+        binding.textCurrentSize.text = text
 
-                CameraSize.S16_9 -> {
-                    textCurrentSize.text = getString(R.string._16_9)
-                    textView = binding.option169
-                }
-
-                CameraSize.S1_1 -> {
-                    textCurrentSize.text = getString(R.string._1_1)
-                    textView = binding.option11
-                }
-
-                CameraSize.SFull -> {
-                    textCurrentSize.text = getString(R.string.full)
-                    textView = binding.optionFull
-                }
-            }
-            binding.layoutSize.children.forEach {
-                if (it is TextView) {
-                    if (it == textView)
-                        it.setTextColor(getColor(R.color.yellow))
-                    else
-                        it.setTextColor(getColor(R.color.white))
-                }
+        binding.layoutSize.children.forEach { view ->
+            if (view is TextView) {
+                val colorRes = if (view == selectedOptionView) R.color.yellow else R.color.white
+                view.setTextColor(ContextCompat.getColor(this, colorRes))
             }
         }
-
     }
 
-    private fun toggleSizeOptions() {
-        setTextBtnSize()
-        val isSizeOptionsExpanded = binding.layoutSize.visibility != View.VISIBLE
-        val transition = AutoTransition().apply {
-            duration = 200
+    private fun setTextBtnTimer() {
+        val selectedOptionView = when (timerState) {
+            TimerState.T_3 -> binding.optionT3
+            TimerState.OFF -> binding.optionOff
+            TimerState.T_5 -> binding.optionT5
+            TimerState.T_10 -> binding.optionT10
         }
-        TransitionManager.beginDelayedTransition(binding.layoutBtn, transition)
 
-        if (isSizeOptionsExpanded) {
-            binding.layoutSize.visibility = View.VISIBLE
-            setOtherButtonsVisibility(binding.btnSize, View.GONE)
-        } else {
-            binding.layoutSize.visibility = View.GONE
-            setOtherButtonsVisibility(binding.btnSize, View.VISIBLE)
+        binding.layoutTimer.children.forEach { view ->
+            if (view is TextView) {
+                val colorRes = if (view == selectedOptionView) R.color.yellow else R.color.white
+                view.setTextColor(ContextCompat.getColor(this, colorRes))
+            }
         }
+        updateTimerButtonIcon()
+    }
+
+    private fun updateTimerButtonIcon() {
+        val iconRes =
+            if (timerState != TimerState.OFF) R.drawable.ic_clock_on else R.drawable.ic_clock_off
+        Glide.with(this).load(iconRes).into(binding.icBtnTimer)
+    }
+
+    private fun toggleTimerControlsVisibility() {
+        setTextBtnTimer()
+        val layout = binding.layoutTimer
+        val isExpanding = layout.visibility != View.VISIBLE
+        val transition = AutoTransition().apply { duration = 200 }
+
+        TransitionManager.beginDelayedTransition(binding.layoutBtn, transition)
+        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        setOtherButtonsVisibility(
+            binding.layoutBtn,
+            listOf(binding.layoutBtnTimer),
+            if (isExpanding) View.GONE else View.VISIBLE
+        )
+    }
+
+    private fun toggleSizeControlsVisibility() {
+        setTextBtnSize()
+        val layout = binding.layoutSize
+        val isExpanding = layout.visibility != View.VISIBLE
+        val transition = AutoTransition().apply { duration = 200 }
+
+        TransitionManager.beginDelayedTransition(binding.layoutBtn, transition)
+        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        setOtherButtonsVisibility(
+            binding.layoutBtn,
+            listOf(binding.layoutBtnSize),
+            if (isExpanding) View.GONE else View.VISIBLE
+        )
         binding.overlayView.setSize(window, currentSize)
     }
 
-    private fun btnLightClick() {
-        val isBtnOptionsExpanded = binding.layoutSeekBar.visibility != View.VISIBLE
-        val transition = AutoTransition().apply {
-            duration = 200
-        }
+    private fun toggleBrightnessControlsVisibility() {
+        val layout = binding.layoutSeekBar
+        val isExpanding = layout.visibility != View.VISIBLE
+        val transition = AutoTransition().apply { duration = 200 }
+
         TransitionManager.beginDelayedTransition(binding.layoutBtn, transition)
-
-        if (isBtnOptionsExpanded) {
-            binding.layoutSeekBar.visibility = View.VISIBLE
-            setOtherButtonsVisibility(binding.btnLightLayout, View.GONE)
-        } else {
-            binding.layoutSeekBar.visibility = View.GONE
-            setOtherButtonsVisibility(binding.btnLightLayout, View.VISIBLE)
-        }
+        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        setOtherButtonsVisibility(
+            binding.layoutBtn,
+            listOf(binding.btnLightLayout),
+            if (isExpanding) View.GONE else View.VISIBLE
+        )
     }
 
-    private fun setOtherButtonsVisibility(currBtn: View, visibility: Int) {
-        binding.layoutBtn.children.forEach { childView ->
-            if (childView != currBtn)
+    private fun setOtherButtonsVisibility(
+        parent: ViewGroup,
+        excludedViews: List<View>,
+        visibility: Int,
+    ) {
+        parent.children.forEach { childView ->
+            if (childView !in excludedViews) {
                 childView.visibility = visibility
+            }
         }
     }
 
-    private fun takePhoto() {
-        val imageCapture = imageCapture ?: return
+    private fun prepareAndTakePhoto() {
+        val currentImageCapture = imageCapture ?: return
 
-        imageCapture.takePicture(
+        var initialTimeMillis = when (timerState) {
+            TimerState.T_3 -> 3000L
+            TimerState.T_5 -> 5000L
+            TimerState.T_10 -> 10000L
+            TimerState.OFF -> 0L
+        }
+
+        if (timerState != TimerState.OFF) {
+            var mutableTimeMillis = initialTimeMillis
+            setOtherButtonsVisibility(
+                binding.root,
+                listOf(binding.overlayView, binding.previewView, binding.btnCamera),
+                View.GONE
+            )
+            Glide.with(this).load(R.drawable.ic_pause).into(binding.btnCamera)
+
+            countDownTimer = object : CountDownTimer(initialTimeMillis, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    binding.overlayView.drawTextCountDown((mutableTimeMillis / 1000).toString())
+                    mutableTimeMillis -= 1000
+                }
+
+                override fun onFinish() {
+                    executeImageCapture(currentImageCapture)
+                }
+            }.start()
+        } else {
+            executeImageCapture(currentImageCapture)
+        }
+    }
+
+    private fun executeImageCapture(imageCaptureInstance: ImageCapture) {
+        countDownTimer = null
+        binding.overlayView.drawTextCountDown(null)
+
+        imageCaptureInstance.takePicture(
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
-
-
                     val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         imageProxyToBitmapSinglePlane(window, image, currentSize)
                     } else {
-                        null
+                        TODO("VERSION.SDK_INT < R")
                     }
+                    image.close() // Important: Close the ImageProxy
 
-                    if (bitmap != null)
+                    if (bitmap != null) {
                         viewModel.saveImageToGallery(bitmap)
-                    else
-                        Toast.makeText(this@CameraActivity, "fail", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@CameraActivity, "Image saved", Toast.LENGTH_SHORT)
+                            .show()
+                    } else {
+                        Toast.makeText(
+                            this@CameraActivity,
+                            "Failed to process image",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    resetUiAfterCaptureAttempt()
                 }
 
                 override fun onError(exception: ImageCaptureException) {
-                    Toast.makeText(this@CameraActivity, "Lỗi chụp ảnh", Toast.LENGTH_SHORT).show()
-                    Log.e("CameraX", "Capture failed", exception)
+                    Log.e("CameraX", "Image capture failed: ${exception.message}", exception)
+                    Toast.makeText(this@CameraActivity, "Image capture failed", Toast.LENGTH_SHORT)
+                        .show()
+                    resetUiAfterCaptureAttempt()
                 }
             }
         )
     }
 
-    private fun swapCameraSelector() {
+    private fun resetUiAfterCaptureAttempt() {
+        if (timerState != TimerState.OFF) {
+            setOtherButtonsVisibility(
+                binding.root,
+                listOf(binding.overlayView, binding.previewView, binding.btnCamera),
+                View.VISIBLE
+            )
+            Glide.with(this@CameraActivity)
+                .load(R.drawable.ic_rounded_white)
+                .into(binding.btnCamera)
+        }
+    }
+
+    private fun swapCamera() {
         cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA)
             CameraSelector.DEFAULT_FRONT_CAMERA
         else
@@ -279,32 +384,36 @@ class CameraActivity : AppCompatActivity() {
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
-                }
+            val preview = Preview.Builder().build().also {
+                it.setSurfaceProvider(binding.previewView.surfaceProvider)
+            }
+
             imageCapture = ImageCapture.Builder()
                 .setTargetResolution(Size(1440, 3200))
-                .setCaptureMode(CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .also { builder ->
+                    val flashMode = when (flashState) {
+                        FlashState.ON -> ImageCapture.FLASH_MODE_ON
+                        FlashState.OFF -> ImageCapture.FLASH_MODE_OFF
+                        FlashState.AUTO -> ImageCapture.FLASH_MODE_AUTO
+                    }
+                    builder.setFlashMode(flashMode)
+                }
                 .build()
 
             try {
                 cameraProvider.unbindAll()
-
                 camera = cameraProvider.bindToLifecycle(
                     this, cameraSelector, preview, imageCapture
                 )
-
                 setupBrightnessControls()
             } catch (exc: Exception) {
-                Toast.makeText(this, "Failed to start camera", Toast.LENGTH_SHORT).show()
+                Log.e("CameraX", "Use case binding failed", exc)
+                Toast.makeText(this, "Failed to start camera.", Toast.LENGTH_SHORT).show()
             }
-
         }, ContextCompat.getMainExecutor(this))
     }
 
@@ -312,9 +421,16 @@ class CameraActivity : AppCompatActivity() {
         camera?.let { cam ->
             val cameraControl = cam.cameraControl
             val cameraInfo = cam.cameraInfo
-
             val exposureState = cameraInfo.exposureState
             val exposureRange = exposureState.exposureCompensationRange
+
+            if (exposureRange.lower == 0 && exposureRange.upper == 0) {
+                binding.btnLight.visibility = View.GONE
+                binding.layoutSeekBar.visibility = View.GONE
+                return
+            } else {
+                binding.btnLight.visibility = View.VISIBLE
+            }
 
             binding.seekBar.apply {
                 max = exposureRange.upper
@@ -323,8 +439,8 @@ class CameraActivity : AppCompatActivity() {
                 }
                 progress = exposureState.exposureCompensationIndex
                 binding.tvLight.text = progress.toString()
-                setOnSeekBarChangeListener(object :
-                    SeekBar.OnSeekBarChangeListener {
+
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(
                         seekBar: SeekBar?,
                         progress: Int,
@@ -334,17 +450,13 @@ class CameraActivity : AppCompatActivity() {
                             binding.tvLight.text = progress.toString()
                             if (exposureRange.contains(progress)) {
                                 cameraControl.setExposureCompensationIndex(progress)
-                                    .addListener(
-                                        {},
-                                        ContextCompat.getMainExecutor(this@CameraActivity)
-                                    )
                             }
                         }
                     }
 
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                     override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                        currBrightness = seekBar?.progress
+                        currentBrightness = seekBar?.progress
                     }
                 })
             }
@@ -353,12 +465,13 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (camera != null && currBrightness != null) {
-            camera!!.cameraControl.setExposureCompensationIndex(currBrightness!!)
+        currentBrightness?.let { brightnessValue ->
+            camera?.cameraControl?.setExposureCompensationIndex(brightnessValue)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        countDownTimer?.cancel()
     }
 }

@@ -17,7 +17,16 @@ class FrameOverlayView(
     context: Context,
     attrs: AttributeSet?,
 ) : View(context, attrs) {
+    private val textPaint = Paint().apply {
+        color = context.getColor(R.color.white)
+        textSize = 300f
+        textAlign = Paint.Align.CENTER
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            typeface = resources.getFont(R.font.quicksand_bold)
+        }
+    }
 
+    private var textCountDown: String? = null
     private val paint = Paint().apply {
         color = context.getColor(R.color.black_opacity_0_2)
     }
@@ -39,6 +48,12 @@ class FrameOverlayView(
         super.onDraw(canvas)
         if (gridState)
             drawGrid(canvas)
+        if (textCountDown != null) {
+            val y = (top + targetHeight / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
+            val x = width.toFloat() / 2
+            canvas.drawText(textCountDown!!, x, y, textPaint)
+        }
+
         canvas.drawRect(0f, 0f, width.toFloat(), top, paint)
         canvas.drawRect(0f, top + targetHeight, width.toFloat(), height.toFloat(), paint)
     }
@@ -56,6 +71,12 @@ class FrameOverlayView(
             0f, top + targetHeight * 2 / 3, width.toFloat(), top + targetHeight * 2 / 3
         )
         canvas.drawLines(listArray, whitePaint)
+    }
+
+
+    fun drawTextCountDown(text: String? = null) {
+        textCountDown = text
+        invalidate()
     }
 
     fun setSize(window: Window, cameraSize: CameraSize) {
