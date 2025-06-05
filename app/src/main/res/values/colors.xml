@@ -9,7 +9,7 @@
     <color name="black_overlay">#66000000</color>
     <color name="teal_700">#FF018786</color>
     <color name="black_opacity_0.2">#99000000</color>
-    <color name="bg_btn_camera">#55787880</color>
+    <color name="bg_btn_camera">#33787880</color>
     <color name="yellow">#FFF8D74A</color>
     <color name="custom_seekbar_track_color">#60FFFFFF</color>
     <color name="custom_seekbar_progress_color">#FFF8D74A</color>

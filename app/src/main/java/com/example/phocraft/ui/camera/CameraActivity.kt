@@ -17,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
+import androidx.camera.core.ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
@@ -30,6 +30,7 @@ import com.bumptech.glide.Glide
 import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityCameraBinding
 import com.example.phocraft.enum.CameraSize
+import com.example.phocraft.enum.FlashState
 import com.example.phocraft.utils.imageProxyToBitmapSinglePlane
 
 class CameraActivity : AppCompatActivity() {
@@ -41,7 +42,7 @@ class CameraActivity : AppCompatActivity() {
     private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private var camera: Camera? = null
     private var currBrightness: Int? = 0
-    private var flashState = false
+    private var flashState: FlashState = FlashState.OFF
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -62,15 +63,31 @@ class CameraActivity : AppCompatActivity() {
     private fun setUpOnClick() {
         binding.apply {
             btnFlash.setOnClickListener {
-                flashState = !flashState
-                if (flashState) {
-                    Glide.with(this@CameraActivity)
-                        .load(R.drawable.ic_flash_on)
-                        .into(btnFlash)
-                } else
-                    Glide.with(this@CameraActivity)
-                        .load(R.drawable.ic_flash_off)
-                        .into(btnFlash)
+                when (flashState) {
+                    FlashState.ON -> {
+                        flashState = FlashState.OFF
+                        Glide.with(this@CameraActivity)
+                            .load(R.drawable.ic_flash_off)
+                            .into(btnFlash)
+                        imageCapture?.flashMode = ImageCapture.FLASH_MODE_OFF
+                    }
+
+                    FlashState.OFF -> {
+                        flashState = FlashState.AUTO
+                        Glide.with(this@CameraActivity)
+                            .load(R.drawable.ic_flash_auto)
+                            .into(btnFlash)
+                        imageCapture?.flashMode = ImageCapture.FLASH_MODE_AUTO
+                    }
+
+                    FlashState.AUTO -> {
+                        flashState = FlashState.ON
+                        Glide.with(this@CameraActivity)
+                            .load(R.drawable.ic_flash_on)
+                            .into(btnFlash)
+                        imageCapture?.flashMode = ImageCapture.FLASH_MODE_ON
+                    }
+                }
             }
             btnSwap.setOnClickListener {
                 swapCameraSelector()
@@ -273,7 +290,7 @@ class CameraActivity : AppCompatActivity() {
                 }
             imageCapture = ImageCapture.Builder()
                 .setTargetResolution(Size(1440, 3200))
-                .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY)
+                .setCaptureMode(CAPTURE_MODE_MINIMIZE_LATENCY)
                 .build()
 
             try {
