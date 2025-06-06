@@ -18,6 +18,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -33,7 +34,11 @@ import com.example.phocraft.databinding.ActivityCameraBinding
 import com.example.phocraft.enum.CameraSize
 import com.example.phocraft.enum.FlashState
 import com.example.phocraft.enum.TimerState
+import com.example.phocraft.utils.FaceAnalyzer
 import com.example.phocraft.utils.imageProxyToBitmapSinglePlane
+import com.example.phocraft.views.FaceOverlayView
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class CameraActivity : AppCompatActivity() {
     private val binding by lazy { ActivityCameraBinding.inflate(layoutInflater) }
@@ -49,6 +54,8 @@ class CameraActivity : AppCompatActivity() {
     private var timerState: TimerState = TimerState.OFF
     private var currentBrightness: Int? = null
     private var countDownTimer: CountDownTimer? = null
+    private lateinit var cameraExecutor: ExecutorService
+    private lateinit var faceOverlayView: FaceOverlayView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +69,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun setupUi() {
+        cameraExecutor = Executors.newSingleThreadExecutor()
         binding.overlayView.setSize(window, currentSize)
         updateFlashButtonIcon()
         updateTimerButtonIcon()
@@ -387,12 +395,29 @@ class CameraActivity : AppCompatActivity() {
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
+            val isFront = cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
+
+
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(binding.previewView.surfaceProvider)
             }
-
+            var width: Float? = null
+            var height: Float? = null
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val metrics = window.windowManager.currentWindowMetrics
+                width = metrics.bounds.width().toFloat()
+                height = metrics.bounds.height().toFloat()
+            } else {
+                null
+            }
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, FaceAnalyzer(binding.faceOverlayView, isFront))
+                }
             imageCapture = ImageCapture.Builder()
-                .setTargetResolution(Size(1440, 3200))
+                .setTargetResolution(Size(width?.toInt() ?: 1920, height?.toInt() ?: 1080))
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                 .also { builder ->
                     val flashMode = when (flashState) {
@@ -407,7 +432,7 @@ class CameraActivity : AppCompatActivity() {
             try {
                 cameraProvider.unbindAll()
                 camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture
+                    this, cameraSelector, preview, imageCapture, imageAnalyzer
                 )
                 setupBrightnessControls()
             } catch (exc: Exception) {
@@ -473,5 +498,6 @@ class CameraActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         countDownTimer?.cancel()
+        cameraExecutor.shutdown()
     }
 }

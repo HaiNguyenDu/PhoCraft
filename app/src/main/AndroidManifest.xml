@@ -29,6 +29,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PhoCraft"
         tools:targetApi="31">
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="face" />
         <activity
             android:name=".ui.editing.EditingActivity"
             android:exported="false" />
