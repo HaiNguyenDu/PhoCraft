@@ -2,26 +2,23 @@ package com.example.phocraft.views
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
-import com.example.phocraft.R
 import com.example.phocraft.enum.FilterMode
 import com.example.phocraft.utils.DrawFilterHelper
 import com.google.mlkit.vision.face.Face
 
 class FaceOverlayView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var faces = mutableListOf<Face>()
-    private var filterMode: FilterMode? = FilterMode.HEAD
+    private var filterMode: FilterMode? = FilterMode.NONE
     private var sourceWidth = 0
     private var sourceHeight = 0
 
     private var isFrontCamera = false
 
-    private var filterBitmap: Bitmap? =
-        BitmapFactory.decodeResource(resources, R.drawable.filter_rabbit)
+    private var filterBitmap: Bitmap? = null
 
     fun update(
         faces: List<Face>,

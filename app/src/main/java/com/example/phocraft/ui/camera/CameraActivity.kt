@@ -59,7 +59,7 @@ class CameraActivity : AppCompatActivity() {
     private var countDownTimer: CountDownTimer? = null
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var faceOverlayView: FaceOverlayView
-    private var filterMode = FilterMode.HEAD
+    private var filterMode = FilterMode.NONE
     private var cameraProvider: ProcessCameraProvider? = null
     private var imageAnalyzer: ImageAnalysis? = null
 
