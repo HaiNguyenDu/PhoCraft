@@ -39,6 +39,7 @@ android {
 }
 val cameraxVersion = "1.2.2"
 dependencies {
+    implementation("com.google.android.gms:play-services-mlkit-face-detection:17.1.0")
     implementation("androidx.camera:camera-core:$cameraxVersion")
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")

@@ -19,4 +19,14 @@
     <dimen name="size_25">25dp</dimen>
     <dimen name="size_40">40dp</dimen>
     <dimen name="font_16">16sp</dimen>
+    <dimen name="size_200">200dp</dimen>
+    <dimen name="size_150">150dp</dimen>
+    <dimen name="size_72">72dp</dimen>
+    <dimen name="size_14">14dp</dimen>
+    <dimen name="size_27">27dp</dimen>
+    <dimen name="size_28">28dp</dimen>
+    <dimen name="size_15">15dp</dimen>
+    <dimen name="size_35">35dp</dimen>
+    <dimen name="size_300">300dp</dimen>
+    <dimen name="size_1">1dp</dimen>
 </resources>

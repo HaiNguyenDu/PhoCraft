@@ -23,13 +23,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _errorMessage = MutableLiveData<String>()
-    val errorMessage: LiveData<String> = _errorMessage
-
     fun loadImages(category: ImageCategory) {
         viewModelScope.launch {
             _isLoading.value = true
-            val images = repository.getImagesFromMediaStore(getApplication(), category)
+            val images = repository.getImagesFromMediaStore(category)
 
             when (category) {
                 ImageCategory.RECENT -> _recentImages.value = images
