@@ -1,5 +1,7 @@
 package com.example.phocraft.ui.camera
 
+import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -32,6 +34,7 @@ import com.bumptech.glide.Glide
 import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityCameraBinding
 import com.example.phocraft.enum.CameraSize
+import com.example.phocraft.enum.FilterMode
 import com.example.phocraft.enum.FlashState
 import com.example.phocraft.enum.TimerState
 import com.example.phocraft.utils.FaceAnalyzer
@@ -56,6 +59,9 @@ class CameraActivity : AppCompatActivity() {
     private var countDownTimer: CountDownTimer? = null
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var faceOverlayView: FaceOverlayView
+    private var filterMode = FilterMode.HEAD
+    private var cameraProvider: ProcessCameraProvider? = null
+    private var imageAnalyzer: ImageAnalysis? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,7 +85,6 @@ class CameraActivity : AppCompatActivity() {
 
     private fun setupClickListeners() {
         binding.btnCamera.setOnClickListener { handleCameraClick() }
-        binding.btnTimer.setOnClickListener { toggleTimerControlsVisibility() }
         binding.btnFlash.setOnClickListener { toggleFlash() }
         binding.btnSwap.setOnClickListener { swapCamera() }
         binding.btnArrow.setOnClickListener { toggleMainControlsGroupVisibility() }
@@ -87,6 +92,31 @@ class CameraActivity : AppCompatActivity() {
         setupMainControlsGroupClickListeners()
         setupSizeOptionClickListeners()
         setupTimerOptionClickListeners()
+        setUpFilterOptionsClick()
+    }
+
+    private fun setUpFilterOptionsClick() {
+        binding.apply {
+            optionFilterCheekRabbit.setOnClickListener {
+                filterMode = FilterMode.CHEEK
+                val filterBitmap =
+                    BitmapFactory.decodeResource(resources, R.drawable.filter_rabbit_cheek)
+                binding.faceOverlayView.updateFilter(filterMode, filterBitmap)
+                selectFilterMode(optionFilterCheekRabbit)
+            }
+            optionFilterHeadRabbit.setOnClickListener {
+                filterMode = FilterMode.HEAD
+                val filterBitmap = BitmapFactory.decodeResource(resources, R.drawable.filter_rabbit)
+                binding.faceOverlayView.updateFilter(filterMode, filterBitmap)
+                selectFilterMode(optionFilterHeadRabbit)
+            }
+            optionFilterNone.setOnClickListener {
+                filterMode = FilterMode.NONE
+                val filterBitmap = null
+                binding.faceOverlayView.updateFilter(filterMode, filterBitmap)
+                selectFilterMode(optionFilterNone)
+            }
+        }
     }
 
     private fun toggleFlash() {
@@ -143,6 +173,30 @@ class CameraActivity : AppCompatActivity() {
             btnLight.setOnClickListener { toggleBrightnessControlsVisibility() }
             btnSize.setOnClickListener { toggleSizeControlsVisibility() }
             btnGrid.setOnClickListener { toggleGrid() }
+            btnTimer.setOnClickListener { toggleTimerControlsVisibility() }
+            btnFilter.setOnClickListener { toggleFilterControlsVisibility() }
+        }
+    }
+
+    private fun toggleFilterControlsVisibility() {
+        val layout = binding.scrollLayoutFilter
+        val isExpanding = layout.visibility != View.VISIBLE
+        val transition = AutoTransition().apply { duration = 200 }
+
+        TransitionManager.beginDelayedTransition(binding.layoutBtn, transition)
+        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        setOtherButtonsVisibility(
+            binding.layoutBtn,
+            listOf(binding.layoutBtnFilter),
+            if (isExpanding) View.GONE else View.VISIBLE
+        )
+    }
+
+    private fun selectFilterMode(view: View) {
+        for (i in binding.layoutFilter.children) {
+            if (i == view) {
+                i.setBackgroundResource(R.drawable.bg_filter_item)
+            } else i.setBackgroundColor(Color.TRANSPARENT)
         }
     }
 
@@ -173,7 +227,6 @@ class CameraActivity : AppCompatActivity() {
         timerState = state
         toggleTimerControlsVisibility()
     }
-
 
     private fun toggleMainControlsGroupVisibility() {
         val layout = binding.layoutBtn
@@ -346,7 +399,7 @@ class CameraActivity : AppCompatActivity() {
                     image.close() // Important: Close the ImageProxy
 
                     if (bitmap != null) {
-                        viewModel.saveImageToGallery(bitmap)
+//                        viewModel.saveImageToGallery(bitmap)
                         Toast.makeText(this@CameraActivity, "Image saved", Toast.LENGTH_SHORT)
                             .show()
                     } else {
@@ -361,7 +414,11 @@ class CameraActivity : AppCompatActivity() {
 
                 override fun onError(exception: ImageCaptureException) {
                     Log.e("CameraX", "Image capture failed: ${exception.message}", exception)
-                    Toast.makeText(this@CameraActivity, "Image capture failed", Toast.LENGTH_SHORT)
+                    Toast.makeText(
+                        this@CameraActivity,
+                        "Image capture failed",
+                        Toast.LENGTH_SHORT
+                    )
                         .show()
                     resetUiAfterCaptureAttempt()
                 }
@@ -387,58 +444,15 @@ class CameraActivity : AppCompatActivity() {
             CameraSelector.DEFAULT_FRONT_CAMERA
         else
             CameraSelector.DEFAULT_BACK_CAMERA
-        startCamera()
+        bindCameraUseCases()
     }
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
 
-            val isFront = cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
-
-
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(binding.previewView.surfaceProvider)
-            }
-            var width: Float? = null
-            var height: Float? = null
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val metrics = window.windowManager.currentWindowMetrics
-                width = metrics.bounds.width().toFloat()
-                height = metrics.bounds.height().toFloat()
-            } else {
-                null
-            }
-            val imageAnalyzer = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-                .also {
-                    it.setAnalyzer(cameraExecutor, FaceAnalyzer(binding.faceOverlayView, isFront))
-                }
-            imageCapture = ImageCapture.Builder()
-                .setTargetResolution(Size(width?.toInt() ?: 1920, height?.toInt() ?: 1080))
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .also { builder ->
-                    val flashMode = when (flashState) {
-                        FlashState.ON -> ImageCapture.FLASH_MODE_ON
-                        FlashState.OFF -> ImageCapture.FLASH_MODE_OFF
-                        FlashState.AUTO -> ImageCapture.FLASH_MODE_AUTO
-                    }
-                    builder.setFlashMode(flashMode)
-                }
-                .build()
-
-            try {
-                cameraProvider.unbindAll()
-                camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture, imageAnalyzer
-                )
-                setupBrightnessControls()
-            } catch (exc: Exception) {
-                Log.e("CameraX", "Use case binding failed", exc)
-                Toast.makeText(this, "Failed to start camera.", Toast.LENGTH_SHORT).show()
-            }
+            bindCameraUseCases()
         }, ContextCompat.getMainExecutor(this))
     }
 
@@ -485,6 +499,60 @@ class CameraActivity : AppCompatActivity() {
                     }
                 })
             }
+        }
+    }
+
+    private fun bindCameraUseCases() {
+        val cameraProvider = this.cameraProvider ?: return
+        cameraProvider.unbindAll()
+
+        val preview = Preview.Builder().build().also {
+            it.setSurfaceProvider(binding.previewView.surfaceProvider)
+        }
+
+        var width: Float? = null
+        var height: Float? = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val metrics = window.windowManager.currentWindowMetrics
+            width = metrics.bounds.width().toFloat()
+            height = metrics.bounds.height().toFloat()
+        } else {
+            null
+        }
+
+        imageCapture = ImageCapture.Builder()
+            .setTargetResolution(Size(width?.toInt() ?: 1920, height?.toInt() ?: 1080))
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .also { builder ->
+                val flashMode = when (flashState) {
+                    FlashState.ON -> ImageCapture.FLASH_MODE_ON
+                    FlashState.OFF -> ImageCapture.FLASH_MODE_OFF
+                    FlashState.AUTO -> ImageCapture.FLASH_MODE_AUTO
+                }
+                builder.setFlashMode(flashMode)
+            }
+            .build()
+
+        try {
+            val isFront = cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
+            imageAnalyzer = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+                .also {
+                    it.setAnalyzer(
+                        cameraExecutor,
+                        FaceAnalyzer(binding.faceOverlayView, isFront)
+                    )
+                }
+            camera = cameraProvider.bindToLifecycle(
+                this, cameraSelector, preview, imageCapture, imageAnalyzer
+            )
+
+            setupBrightnessControls()
+        } catch (exc: Exception) {
+            Log.e("CameraX", "Use case binding failed", exc)
+            Toast.makeText(this, "Failed to start camera.", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 

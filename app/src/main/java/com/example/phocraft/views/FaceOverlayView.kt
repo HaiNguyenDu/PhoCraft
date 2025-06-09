@@ -4,31 +4,24 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Matrix
-import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import com.example.phocraft.R
+import com.example.phocraft.enum.FilterMode
+import com.example.phocraft.utils.DrawFilterHelper
 import com.google.mlkit.vision.face.Face
 
 class FaceOverlayView(context: Context, attrs: AttributeSet) : View(context, attrs) {
-    private val faces = mutableListOf<Face>()
-
+    private var faces = mutableListOf<Face>()
+    private var filterMode: FilterMode? = FilterMode.HEAD
     private var sourceWidth = 0
     private var sourceHeight = 0
 
     private var isFrontCamera = false
 
-    private val filterBitmap: Bitmap =
+    private var filterBitmap: Bitmap? =
         BitmapFactory.decodeResource(resources, R.drawable.filter_rabbit)
-
-    private val debugPaint = Paint().apply {
-        color = Color.CYAN
-        style = Paint.Style.STROKE
-        strokeWidth = 4.0f
-    }
 
     fun update(
         faces: List<Face>,
@@ -41,45 +34,51 @@ class FaceOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         this.sourceWidth = sourceWidth
         this.sourceHeight = sourceHeight
         this.isFrontCamera = isFrontCamera
-
         invalidate()
+    }
+
+    fun updateFilter(filterMode: FilterMode, filterBitmap: Bitmap?) {
+        this.filterMode = filterMode
+        this.filterBitmap = filterBitmap
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-
+        if (filterBitmap == null) return
         if (faces.isEmpty() || sourceWidth == 0) return
 
-        val scaleX = width.toFloat() / sourceHeight.toFloat()
-        val scaleY = height.toFloat() / sourceWidth.toFloat()
+        val matrix = DrawFilterHelper.getMatrix(
+            width,
+            height,
+            sourceWidth,
+            sourceHeight,
+            isFrontCamera
+        )
+        val face = faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() }
+        if (face == null) return
 
-        val matrix = Matrix().apply {
-            preScale(scaleX, scaleY)
-            if (isFrontCamera) {
-                postTranslate(-width / 2f, -height / 2f)
-                postScale(-1f, 1f)
-                postTranslate(width / 2f, height / 2f)
-            }
-        }
+        val boundingBox = RectF(face.boundingBox)
+        matrix.mapRect(boundingBox)
 
-        for (face in faces) {
-            val boundingBox = RectF(face.boundingBox)
-
-            matrix.mapRect(boundingBox)
-
-            val filterWidth = boundingBox.width() * 0.8f
-
-            val filterHeight = filterWidth * filterBitmap.height / filterBitmap.width
-
-            val filterX = boundingBox.centerX() - (filterWidth / 2f)
-
-            val filterY = boundingBox.top - (filterHeight / 2f)
-
-
-            val destinationRect = RectF(filterX, filterY, filterX + filterWidth, filterY + filterHeight)
-
-
-            canvas.drawBitmap(filterBitmap, null, destinationRect, null)
+        if (filterMode == FilterMode.HEAD) {
+            DrawFilterHelper.drawHeadFilter(
+                face,
+                canvas,
+                boundingBox,
+                matrix,
+                isFrontCamera,
+                filterBitmap!!
+            )
+        } else if (filterMode == FilterMode.CHEEK) {
+            DrawFilterHelper.drawCheekFilter(
+                face,
+                canvas,
+                boundingBox,
+                matrix,
+                isFrontCamera,
+                filterBitmap!!
+            )
         }
     }
+
 }

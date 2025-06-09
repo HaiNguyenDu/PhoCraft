@@ -28,4 +28,5 @@
     <dimen name="size_15">15dp</dimen>
     <dimen name="size_35">35dp</dimen>
     <dimen name="size_300">300dp</dimen>
+    <dimen name="size_1">1dp</dimen>
 </resources>
