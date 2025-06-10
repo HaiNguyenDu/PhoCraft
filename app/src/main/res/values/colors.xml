@@ -14,4 +14,15 @@
     <color name="custom_seekbar_track_color">#60FFFFFF</color>
     <color name="custom_seekbar_progress_color">#FFF8D74A</color>
     <color name="custom_seekbar_thumb_color">#FFFFFFFF</color>
+    <color name= "bg_white">#33FFFFFF</color>
+    <color name="light_blue">#ADD8E6</color>
+    <color name="soft_pink">#FFB6C1</color>
+    <color name="mint_green">#98FF98</color>
+    <color name="sun_yellow">#FFD700</color>
+    <color name="sky_blue">#87CEEB</color>
+    <color name="peach_orange">#FFDAB9</color>
+    <color name="lavender_purple">#E6E6FA</color>
+    <color name="forest_green">#228B22</color>
+    <color name="coral_red">#FF7F50</color>
+    <color name="charcoal_gray">#36454F</color>
 </resources>

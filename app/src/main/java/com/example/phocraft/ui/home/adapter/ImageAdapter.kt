@@ -43,6 +43,7 @@ class ImageAdapter(
             Glide.with(context)
                 .load(uri)
                 .into(binding.iv)
+            binding.root.setOnClickListener { onClickItem(uri) }
         }
     }
 }

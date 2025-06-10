@@ -1,0 +1,42 @@
+package com.example.phocraft.ui.editing
+
+import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.example.phocraft.data.repositories.ColorRepository
+import com.example.phocraft.enum.EditingUiState
+
+class EditingViewModel(application: Application) : AndroidViewModel(application) {
+    private val colorRepository = ColorRepository()
+
+    private val _photo = MutableLiveData<Bitmap>()
+    val photo: LiveData<Bitmap> get() = _photo
+
+    private val _uiState = MutableLiveData<EditingUiState>(EditingUiState.MAIN)
+    val uiState: LiveData<EditingUiState> get() = _uiState
+
+    private val _listColor = MutableLiveData<List<Int>>(colorRepository.getListColorId())
+    val listColor: LiveData<List<Int>> get() = _listColor
+
+    private val _isEraser = MutableLiveData<Boolean>(false)
+    val isEraser: LiveData<Boolean> get() = _isEraser
+
+    fun setPhoto(uri: Uri) {
+        val bitmap = BitmapFactory.decodeStream(
+            getApplication<Application>().contentResolver.openInputStream(uri)
+        )
+        _photo.value = bitmap
+    }
+
+    fun setUiState(state: EditingUiState) {
+        _uiState.value = state
+    }
+
+    fun setEraser(state: Boolean) {
+        _isEraser.value = state
+    }
+}

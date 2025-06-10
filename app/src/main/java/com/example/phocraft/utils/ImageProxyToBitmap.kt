@@ -1,11 +1,9 @@
 package com.example.phocraft.utils
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Build
 import android.view.Window
 import androidx.annotation.RequiresApi
-import androidx.camera.core.ImageProxy
 import androidx.core.graphics.scale
 import com.example.phocraft.enum.CameraSize
 import kotlin.math.max
@@ -13,16 +11,9 @@ import kotlin.math.max
 @RequiresApi(Build.VERSION_CODES.R)
 fun imageProxyToBitmapSinglePlane(
     window: Window,
-    imageProxy: ImageProxy,
+    originalBitmap: Bitmap,
     cameraSize: CameraSize,
 ): Bitmap? {
-
-    val buffer = imageProxy.planes[0].buffer
-    val bytes = ByteArray(buffer.remaining())
-    buffer.get(bytes)
-    imageProxy.close()
-
-    val originalBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
 
     val originalWidth = originalBitmap.width
     val originalHeight = originalBitmap.height
@@ -40,7 +31,7 @@ fun imageProxyToBitmapSinglePlane(
     val finalTop = size[1]
 
     val scaleX = screenWidth.toFloat() / originalWidth
-    val scaleY = (finalTop+screenHeight.toFloat()) / originalHeight
+    val scaleY = (finalTop + screenHeight.toFloat()) / originalHeight
     val scale = max(scaleX, scaleY)
 
     val centeringOffsetX = (originalWidth * scale - screenWidth) / 2f
