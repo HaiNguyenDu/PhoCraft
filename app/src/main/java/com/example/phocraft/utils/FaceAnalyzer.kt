@@ -5,12 +5,14 @@ import androidx.camera.core.ImageAnalysis.Analyzer
 import androidx.camera.core.ImageProxy
 import com.example.phocraft.views.FaceOverlayView
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 
 class FaceAnalyzer(
     private val faceOverlayView: FaceOverlayView,
     private val isFrontCamera: Boolean,
+    private val setFaces: (faces: List<Face>) -> Unit,
 ) : Analyzer {
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     override fun analyze(imageProxy: ImageProxy) {
@@ -36,6 +38,7 @@ class FaceAnalyzer(
                     image.height,
                     isFrontCamera,
                 )
+                setFaces(faces)
             }
             .addOnCompleteListener {
                 imageProxy.close()

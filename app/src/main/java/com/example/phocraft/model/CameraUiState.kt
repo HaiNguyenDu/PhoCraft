@@ -1,5 +1,6 @@
 package com.example.phocraft.model
 
+import android.graphics.Bitmap
 import androidx.camera.core.CameraSelector
 import com.example.phocraft.enum.CameraSize
 import com.example.phocraft.enum.FilterMode
@@ -12,8 +13,10 @@ data class CameraUiState(
     val cameraSize: CameraSize = CameraSize.S4_3,
     val gridState: Boolean = true,
     val cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-    val filterMode: FilterMode = FilterMode.NONE,
+    val filterMode: FilterMode = FilterMode.HEAD,
+    val filterBitmap: Bitmap? = null,
     val countdownValue: Int? = null,
     val isTakingPicture: Boolean = false,
-    val showMainControls: Boolean = true
+    val showMainControls: Boolean = true,
+    val brightness: Int? = null,
 )

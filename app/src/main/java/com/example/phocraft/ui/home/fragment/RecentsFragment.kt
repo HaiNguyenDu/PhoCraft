@@ -1,5 +1,6 @@
 package com.example.phocraft.ui.home.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +11,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.phocraft.databinding.FragmentRecentsBinding
 import com.example.phocraft.enum.ImageCategory
+import com.example.phocraft.ui.editing.EditingActivity
 import com.example.phocraft.ui.home.HomeViewModel
 import com.example.phocraft.ui.home.adapter.ImageAdapter
+import com.example.phocraft.utils.GlobalValue
 
 class RecentsFragment : Fragment() {
     private val binding by lazy { FragmentRecentsBinding.inflate(layoutInflater) }
@@ -38,6 +41,8 @@ class RecentsFragment : Fragment() {
         viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
         binding.rcv.apply {
             imageAdapter = ImageAdapter(context, emptyList()) { uri ->
+                GlobalValue.currPhotoUri = uri
+                startActivity(Intent(context, EditingActivity::class.java))
             }
             layoutManager = GridLayoutManager(context, 3)
             adapter = imageAdapter
