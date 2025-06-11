@@ -34,4 +34,7 @@
     <dimen name="size_90">90dp</dimen>
     <dimen name="size_5">5dp</dimen>
     <dimen name="font_12">12sp</dimen>
+    <dimen name="size_60">60dp</dimen>
+    <dimen name="size_55">55dp</dimen>
+    <dimen name="size_70">70dp</dimen>
 </resources>

@@ -11,4 +11,6 @@
     <string name="_4_3">4:3</string>
     <string name="_1_1">1:1</string>
     <string name="color_change">Color Changed Successfully</string>
+    <string name="eraser">Eraser</string>
+    <string name="paint_size">Paint Size</string>
 </resources>

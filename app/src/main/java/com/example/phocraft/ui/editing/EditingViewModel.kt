@@ -8,10 +8,16 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.phocraft.data.repositories.ColorRepository
+import com.example.phocraft.data.repositories.StickerRepository
 import com.example.phocraft.enum.EditingUiState
 
 class EditingViewModel(application: Application) : AndroidViewModel(application) {
     private val colorRepository = ColorRepository()
+    private val stickerRepository = StickerRepository()
+
+    private val _stickers =
+        MutableLiveData<List<Bitmap>>(stickerRepository.loadStickersFromAssets(getApplication()))
+    val stickers: LiveData<List<Bitmap>> get() = _stickers
 
     private val _photo = MutableLiveData<Bitmap>()
     val photo: LiveData<Bitmap> get() = _photo

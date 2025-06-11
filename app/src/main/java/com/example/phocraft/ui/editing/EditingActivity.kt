@@ -3,6 +3,7 @@ package com.example.phocraft.ui.editing
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -10,11 +11,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.children
 import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityEditingBinding
 import com.example.phocraft.enum.EditingUiState
 import com.example.phocraft.ui.editing.adapter.ColorAdapter
+import com.example.phocraft.ui.editing.adapter.StickerAdapter
+import com.example.phocraft.utils.CONVERT_PAINT_WIDTH
 import com.example.phocraft.utils.GlobalValue
 
 class EditingActivity : AppCompatActivity() {
@@ -31,12 +35,15 @@ class EditingActivity : AppCompatActivity() {
     }
 
     private fun setUpUi() {
+
         if (GlobalValue.currPhotoUri == null) return
         viewModel.setPhoto(GlobalValue.currPhotoUri!!)
 
         val listColorId = viewModel.listColor.value ?: emptyList()
+
         val colorAdapter = ColorAdapter(this, listColorId) { color ->
-            binding.imageEditorView.drawView?.setPaintColor(color)
+            binding.imageEditorView.setPenColor(color)
+            viewModel.setEraser(false)
             Toast.makeText(this, R.string.color_change, Toast.LENGTH_SHORT).show()
         }
 
@@ -45,6 +52,35 @@ class EditingActivity : AppCompatActivity() {
                 LinearLayoutManager(this@EditingActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = colorAdapter
         }
+
+        val listSticker = viewModel.stickers.value ?: emptyList()
+        val stickerAdapter = StickerAdapter(listSticker) { sticker ->
+            binding.imageEditorView.addSticker(sticker)
+        }
+
+        binding.rcvSticker.apply {
+            layoutManager =
+                LinearLayoutManager(this@EditingActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = stickerAdapter
+        }
+
+        binding.sizeSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                p0: SeekBar?,
+                p1: Int,
+                p2: Boolean,
+            ) {
+                val width = p1 * CONVERT_PAINT_WIDTH
+                binding.imageEditorView.setPenWidth(width.toFloat())
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+            }
+
+        })
 
     }
 
@@ -66,13 +102,31 @@ class EditingActivity : AppCompatActivity() {
                     onTextState()
                 }
 
+                EditingUiState.STICKER -> {
+                    onStickerState()
+                }
+
                 else -> {
                     onMainState()
                 }
             }
         }
         viewModel.isEraser.observe(this) {
-            binding.imageEditorView.drawView?.setEraser(it)
+            binding.btnEraser.setBackgroundResource(if (it == true) R.drawable.bg_white_border else R.drawable.bg_no_border)
+            binding.imageEditorView.setEraserMode(it)
+        }
+    }
+
+    private fun onStickerState() {
+        setOtherButtonsVisibility(
+            binding.layoutBtn,
+            listOf(),
+            View.GONE
+        )
+        binding.apply {
+            btnSaveCircle.fadeIn()
+            btnSave.visibility = View.GONE
+            rcvSticker.fadeIn()
         }
     }
 
@@ -85,40 +139,91 @@ class EditingActivity : AppCompatActivity() {
             viewModel.setUiState(EditingUiState.DRAW)
         }
         binding.btnBack.setOnClickListener {
-            when (viewModel.uiState.value) {
-                EditingUiState.MAIN -> {
-                    finish()
-                }
+            setOnClickBtnBack()
+        }
 
-                else -> {
-                    if (viewModel.uiState.value == EditingUiState.DRAW) {
-                        binding.imageEditorView.setDrawingMode(false)
-                    }
-                    viewModel.setUiState(EditingUiState.MAIN)
-                    onMainState()
-                }
+        binding.btnSaveCircle.setOnClickListener {
+            if(viewModel.uiState.value == EditingUiState.STICKER){
+                binding.imageEditorView.saveSticker()
             }
-        }
-        binding.btnEraser.setOnClickListener {
-            viewModel.setEraser(!viewModel.isEraser.value!!)
+            viewModel.setUiState(EditingUiState.MAIN)
         }
 
+        binding.btnFilter.setOnClickListener {
+            viewModel.setUiState(EditingUiState.STICKER)
+        }
         setOnClickDrawState()
     }
 
     private fun setOnClickDrawState() {
         binding.apply {
             btnUndo.setOnClickListener {
-                imageEditorView.drawView?.undo()
+                imageEditorView.undo()
             }
             btnRedo.setOnClickListener {
-                imageEditorView.drawView?.redo()
+                imageEditorView.redo()
             }
             btnColorDraw.setOnClickListener {
-                if (rcvColor.isGone)
+                if (layoutSize.isVisible) {
+                    layoutSize.visibility = View.GONE
+                    btnPaintSize.setBackgroundResource(R.drawable.bg_no_border)
+                }
+                if (rcvColor.isGone) {
                     rcvColor.fadeIn()
-                else
+                    btnColorDraw.setBackgroundResource(R.drawable.bg_white_border)
+                } else {
                     rcvColor.visibility = View.GONE
+                    btnColorDraw.setBackgroundResource(R.drawable.bg_no_border)
+                }
+
+            }
+            binding.btnEraser.setOnClickListener {
+                viewModel.setEraser(!viewModel.isEraser.value!!)
+            }
+            btnPaintSize.setOnClickListener {
+                if (btnColorDraw.isVisible) {
+                    rcvColor.visibility = View.GONE
+                    btnColorDraw.setBackgroundResource(R.drawable.bg_no_border)
+                }
+                if (layoutSize.isGone) {
+                    layoutSize.fadeIn()
+                    btnPaintSize.setBackgroundResource(R.drawable.bg_white_border)
+                } else {
+                    layoutSize.visibility = View.GONE
+                    btnPaintSize.setBackgroundResource(R.drawable.bg_no_border)
+                }
+            }
+        }
+    }
+
+    private fun setOnClickBtnBack() {
+        when (viewModel.uiState.value) {
+            EditingUiState.MAIN -> {
+                finish()
+            }
+
+            EditingUiState.DRAW -> {
+                if (viewModel.uiState.value == EditingUiState.DRAW) {
+                    binding.imageEditorView.apply {
+                        setDrawingMode(false)
+                        clearCanvas()
+                    }
+                }
+                viewModel.setUiState(EditingUiState.MAIN)
+            }
+
+            EditingUiState.STICKER -> {
+                if (viewModel.uiState.value == EditingUiState.DRAW) {
+                    binding.imageEditorView.apply {
+                        setDrawingMode(false)
+                        clearCanvas()
+                    }
+                }
+                viewModel.setUiState(EditingUiState.MAIN)
+                binding.imageEditorView.exitSticker()
+            }
+
+            else -> {
             }
         }
     }
@@ -132,10 +237,9 @@ class EditingActivity : AppCompatActivity() {
             )
             setOtherButtonsVisibility(
                 layoutBtn,
-                listOf(),
+                listOf(layoutBtnMain),
                 View.GONE
             )
-            layoutBtnMain.fadeIn()
             imageEditorView.setDrawingMode(false)
         }
     }
@@ -173,7 +277,8 @@ class EditingActivity : AppCompatActivity() {
         parent.children.forEach { childView ->
             if (childView !in excludedViews) {
                 childView.visibility = visibility
-            }
+            } else childView.visibility = if (visibility == View.GONE)
+                View.VISIBLE else View.GONE
         }
     }
 

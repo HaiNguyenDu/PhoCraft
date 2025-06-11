@@ -1,8 +1,6 @@
 package com.example.phocraft.views
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -12,279 +10,107 @@ import android.graphics.PorterDuffXfermode
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.scale
-import com.example.phocraft.R
-import kotlin.math.min
 
 class DrawView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
-    private val path = Path()
-    private var isEraser = false
-    private lateinit var bitmap: Bitmap
-    private lateinit var canvas: Canvas
-    private val undoStacks = mutableListOf<Stroke>()
-    private val redoStacks = mutableListOf<Stroke>()
-    private var baseImage: Bitmap? = null
+    private val undoStack = mutableListOf<Stroke>()
+    private val redoStack = mutableListOf<Stroke>()
+    private val currentPath = Path()
+    var isDrawingEnabled: Boolean = false
 
-    private var imageRectLeft: Float = 0f
-    private var imageRectTop: Float = 0f
-    private var imageRectRight: Float = 0f
-    private var imageRectBottom: Float = 0f
-
-    var isDrawingMode = false
-
-    private val colorPaint = Paint().apply {
-        color = context.getColor(R.color.black)
-        strokeWidth = 10f
+    private val penPaint = Paint().apply {
+        color = Color.BLACK
         isAntiAlias = true
+        strokeWidth = 20f
         style = Paint.Style.STROKE
-        strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
-    }
-
-    private val borderPaint = Paint().apply {
-        color = context.getColor(R.color.black)
-        strokeWidth = 10f
-        isAntiAlias = true
-        style = Paint.Style.STROKE
-    }
-
-    private val eraserPaintPreview = Paint().apply {
-        color = context.getColor(R.color.white)
-        strokeWidth = 40f
-        isAntiAlias = true
-        style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
-        strokeJoin = Paint.Join.ROUND
     }
 
     private val eraserPaint = Paint().apply {
-        isAntiAlias = true
+        strokeWidth = 50f
         style = Paint.Style.STROKE
-        strokeWidth = 40f
         strokeJoin = Paint.Join.ROUND
         strokeCap = Paint.Cap.ROUND
         xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
 
-    private lateinit var currentPaint: Paint
+    private var currentPaint: Paint = penPaint
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        bitmap = createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        canvas = Canvas(bitmap)
-        currentPaint = if (!isEraser) colorPaint else eraserPaintPreview
-        rebuildBitmap()
+    init {
+        setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        setBackgroundColor(Color.TRANSPARENT)
     }
 
-    fun getBitmapFromView(): Bitmap {
-        val resultBitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val resultCanvas = Canvas(resultBitmap)
+    fun setPenColor(newColor: Int) {
+        penPaint.color = newColor
+        currentPaint = penPaint
+    }
 
-        resultCanvas.drawColor(context.getColor(R.color.white))
-        resultCanvas.drawBitmap(bitmap, 0f, 0f, null)
-        resultCanvas.drawPath(path, currentPaint)
+    fun setPenWidth(newWidth: Float) {
+        penPaint.strokeWidth = newWidth
+        eraserPaint.strokeWidth = newWidth
+    }
 
-        if (baseImage != null) {
-            resultCanvas.drawRect(
-                imageRectLeft - borderPaint.strokeWidth / 2,
-                imageRectTop - borderPaint.strokeWidth / 2,
-                imageRectRight + borderPaint.strokeWidth / 2,
-                imageRectBottom + borderPaint.strokeWidth / 2,
-                borderPaint
-            )
-        } else {
-            resultCanvas.drawRect(
-                borderPaint.strokeWidth / 2,
-                borderPaint.strokeWidth / 2,
-                width - borderPaint.strokeWidth / 2,
-                height - borderPaint.strokeWidth / 2,
-                borderPaint
-            )
+    fun setEraserMode(isEnabled: Boolean) {
+        currentPaint = if (isEnabled) eraserPaint else penPaint
+    }
+
+    fun undo() {
+        if (undoStack.isNotEmpty()) {
+            val lastStroke = undoStack.removeAt(undoStack.lastIndex)
+            redoStack.add(lastStroke)
+            invalidate() // Yêu cầu vẽ lại View
         }
-        return resultBitmap
+    }
+
+    fun redo() {
+        if (redoStack.isNotEmpty()) {
+            val lastStroke = redoStack.removeAt(redoStack.lastIndex)
+            undoStack.add(lastStroke)
+            invalidate()
+        }
+    }
+
+    fun clearCanvas() {
+        undoStack.clear()
+        redoStack.clear()
+        currentPath.reset()
+        invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas.drawBitmap(bitmap, 0f, 0f, null)
-        canvas.drawPath(path, currentPaint)
-    }
-
-    fun setImageBitmap(bitmap: Bitmap) {
-        clearCanvas()
-        baseImage = bitmap
-
-        val scaleX = width.toFloat() / bitmap.width.toFloat()
-        val scaleY = height.toFloat() / bitmap.height.toFloat()
-        val scaleFactor = min(scaleX, scaleY)
-
-        val scaledWidth = (bitmap.width * scaleFactor).toInt()
-        val scaledHeight = (bitmap.height * scaleFactor).toInt()
-
-        val scaledBitmap = bitmap.scale(scaledWidth, scaledHeight)
-
-        this.bitmap.eraseColor(Color.TRANSPARENT)
-
-        val left = (width - scaledBitmap.width) / 2f
-        val top = (height - scaledBitmap.height) / 2f
-
-        imageRectLeft = left
-        imageRectTop = top
-        imageRectRight = left + scaledBitmap.width
-        imageRectBottom = top + scaledBitmap.height
-
-        canvas.drawBitmap(scaledBitmap, left, top, null)
-
-        drawBorder()
-        invalidate()
-    }
-
-
-    fun setEraser(state: Boolean) {
-        isEraser = state
-        currentPaint = if (isEraser) eraserPaintPreview else colorPaint
-    }
-
-
-    fun setPaintColor(color: Int) {
-        colorPaint.color = color
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!isDrawingMode) {
-            return super.onTouchEvent(event)
+        for (stroke in undoStack) {
+            canvas.drawPath(stroke.path, stroke.paint)
         }
+        canvas.drawPath(currentPath, currentPaint)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!isDrawingEnabled) return false
         val x = event.x
         val y = event.y
 
-        if (baseImage != null) {
-            if (x < imageRectLeft || x > imageRectRight || y < imageRectTop || y > imageRectBottom) {
-                return true
-            }
-        } else {
-            if (x < 0 || x > width || y < 0 || y > height) {
-                return true
-            }
-        }
-
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                path.moveTo(x, y)
+                redoStack.clear()
+                currentPath.moveTo(x, y)
             }
 
             MotionEvent.ACTION_MOVE -> {
-                path.lineTo(x, y)
+                currentPath.lineTo(x, y)
             }
 
             MotionEvent.ACTION_UP -> {
-                val pathCopy = Path(path)
-
-                val paintCopy = Paint(if (isEraser) eraserPaint else colorPaint)
-                undoStacks.add(Stroke(pathCopy, paintCopy))
-                canvas.drawPath(
-                    path,
-                    if (isEraser) eraserPaint else colorPaint
-                )
-                redoStacks.clear()
-                path.reset()
+                undoStack.add(Stroke(Path(currentPath), Paint(currentPaint)))
+                currentPath.reset()
             }
+
+            else -> return false
         }
+
         invalidate()
         return true
-    }
-
-    fun rebuildBitmap() {
-        bitmap.eraseColor(Color.TRANSPARENT)
-
-        baseImage?.let {
-            val scaleX = width.toFloat() / it.width.toFloat()
-            val scaleY = height.toFloat() / it.height.toFloat()
-            val scaleFactor = min(scaleX, scaleY)
-
-            val scaledWidth = (it.width * scaleFactor).toInt()
-            val scaledHeight = (it.height * scaleFactor).toInt()
-            val scaledBitmap = it.scale(scaledWidth, scaledHeight)
-
-            val left = (width - scaledBitmap.width) / 2f
-            val top = (height - scaledBitmap.height) / 2f
-
-            imageRectLeft = left
-            imageRectTop = top
-            imageRectRight = left + scaledBitmap.width
-            imageRectBottom = top + scaledBitmap.height
-
-            canvas.drawBitmap(scaledBitmap, left, top, null)
-        } ?: run {
-            imageRectLeft = 0f
-            imageRectTop = 0f
-            imageRectRight = width.toFloat()
-            imageRectBottom = height.toFloat()
-        }
-
-        for (stroke in undoStacks) {
-            canvas.drawPath(stroke.path, stroke.paint)
-        }
-        invalidate()
-    }
-
-
-    fun setBorderColor(color: Int) {
-        borderPaint.color = color
-        drawBorder()
-        invalidate()
-    }
-
-    private fun drawBorder() {
-        if (baseImage != null) {
-            canvas.drawRect(
-                imageRectLeft + borderPaint.strokeWidth / 2,
-                imageRectTop + borderPaint.strokeWidth / 2,
-                imageRectRight - borderPaint.strokeWidth / 2,
-                imageRectBottom - borderPaint.strokeWidth / 2,
-                borderPaint
-            )
-        } else {
-            canvas.drawRect(
-                borderPaint.strokeWidth / 2,
-                borderPaint.strokeWidth / 2,
-                width - borderPaint.strokeWidth / 2,
-                height - borderPaint.strokeWidth / 2,
-                borderPaint
-            )
-        }
-    }
-
-
-    fun undo() {
-        if (undoStacks.isEmpty()) return
-        val last = undoStacks.removeAt(undoStacks.lastIndex)
-        redoStacks.add(last)
-        rebuildBitmap()
-    }
-
-    fun redo() {
-        if (redoStacks.isEmpty()) return
-        val last = redoStacks.removeAt(redoStacks.lastIndex)
-        undoStacks.add(last)
-        canvas.drawPath(last.path, last.paint)
-        invalidate()
-    }
-
-    fun clearCanvas() {
-        undoStacks.clear()
-        redoStacks.clear()
-        path.reset()
-        baseImage = null
-        bitmap.eraseColor(Color.TRANSPARENT)
-
-        imageRectLeft = 0f
-        imageRectTop = 0f
-        imageRectRight = width.toFloat()
-        imageRectBottom = height.toFloat()
-        drawBorder()
-        invalidate()
     }
 
     data class Stroke(val path: Path, val paint: Paint)
