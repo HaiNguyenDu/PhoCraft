@@ -1,4 +1,4 @@
-package com.example.phocraft.views // Thay đổi package cho phù hợp
+package com.example.phocraft.views
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -10,32 +10,41 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PointF
 import android.graphics.RectF
+import android.graphics.Typeface
+import android.graphics.fonts.Font
 import android.util.AttributeSet
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.graphics.withMatrix
 import com.example.phocraft.R
 import com.example.phocraft.enum.StickerActionMode
 import kotlin.math.atan2
-import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class StickerView(
+class CustomTextView(
     context: Context,
     attrs: AttributeSet? = null,
 ) : View(context, attrs) {
-
-
     private var isFocus = true
-    private var stickerBitmap: Bitmap? = null
-    private val stickerMatrix = Matrix()
+    private var textBitmap: Bitmap? = null
+    private val textMatrix = Matrix()
     private var isMatrixInitialized = false
     private var currentMode = StickerActionMode.NONE
     private var lastX = 0f
     private var lastY = 0f
-
+    private var outlineColor = Color.TRANSPARENT
+    private var outlineWidth = 15f
+    val textView: TextView = TextView(context).apply {
+        text = "Enter Your Text"
+        textSize = 30f
+        setTextColor(Color.WHITE)
+    }
 
     private val stickerCenterPoint = PointF()
     private var startDistance = 0f
@@ -45,17 +54,45 @@ class StickerView(
         style = Paint.Style.STROKE
         color = Color.WHITE
         strokeWidth = 3f
-        pathEffect = DashPathEffect(floatArrayOf(10f, 10f), 0f) // Viền nét đứt
+        pathEffect = DashPathEffect(floatArrayOf(10f, 10f), 0f)
     }
 
-    private val deleteHandleBitmap: Bitmap
-    private val resizeHandleBitmap: Bitmap
+    fun setOutline(color: Int? = null, width: Float? = null) {
+        color?.let {
+            this.outlineColor = color
+        }
+        width?.let {
+            this.outlineWidth = width
+        }
+        updateBitmapAndMatrix()
+    }
+
+    fun getStrokeWidth(): Float {
+        return outlineWidth + 15f
+    }
+
+    private val deleteHandleBitmap: Bitmap =
+        BitmapFactory.decodeResource(resources, R.drawable.ic_delete_sticker).scale(40, 40)
+    private val resizeHandleBitmap: Bitmap =
+        BitmapFactory.decodeResource(resources, R.drawable.ic_resize_sticker).scale(40, 40)
+
+    private val gestureDetector: GestureDetector
+    var onDoubleTapListener: (() -> Unit)? = null
 
     init {
-        deleteHandleBitmap =
-            BitmapFactory.decodeResource(resources, R.drawable.ic_delete_sticker).scale(40, 40)
-        resizeHandleBitmap =
-            BitmapFactory.decodeResource(resources, R.drawable.ic_resize_sticker).scale(40, 40)
+        gestureDetector =
+            GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    onDoubleTapListener?.invoke()
+                    return true
+                }
+            })
+        updateBitmapAndMatrix()
+    }
+
+    fun setText(text: String) {
+        textView.text = text
+        updateBitmapAndMatrix()
     }
 
     private val deleteHandleRect = RectF()
@@ -67,16 +104,26 @@ class StickerView(
         invalidate()
     }
 
-    var onDeleteListener: (() -> Unit)? = null
-    var onFocusListener: ((StickerView) -> Unit)? = null
-
-    fun setBitmap(bitmap: Bitmap) {
-
-        this.stickerBitmap = bitmap
-        isMatrixInitialized = false
-        requestLayout()
-        invalidate()
+    fun setTextColor(color: Int) {
+        if (textView.currentTextColor == color) return
+        textView.setTextColor(color)
+        updateBitmapAndMatrix()
     }
+
+    fun setTextSize(sizeInPx: Float) {
+        if (textView.textSize == sizeInPx) return
+        textView.textSize = sizeInPx
+        updateBitmapAndMatrix()
+    }
+
+    fun setFont(typeface: Typeface) {
+        if (textView.typeface == typeface) return
+        textView.typeface = typeface
+        updateBitmapAndMatrix()
+    }
+
+    var onDeleteListener: (() -> Unit)? = null
+    var onFocusListener: ((CustomTextView) -> Unit)? = null
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -85,43 +132,72 @@ class StickerView(
         }
     }
 
+
     private fun setupInitialMatrix() {
-        val bmp = stickerBitmap ?: return
+        val bmp = textBitmap ?: return
         if (width == 0 || height == 0) return
 
-        val targetWidth = 80f * resources.displayMetrics.density
-        val targetHeight = 80f * resources.displayMetrics.density
+        val translateX = (width - bmp.width) / 2f
+        val translateY = (height - bmp.height) / 2f
 
-        val bmpWidth = bmp.width.toFloat()
-        val bmpHeight = bmp.height.toFloat()
-
-
-        val scaleX = targetWidth / bmpWidth
-        val scaleY = targetHeight / bmpHeight
-        val scale = min(scaleX, scaleY)
-
-
-        val newBmpWidth = bmpWidth * scale
-        val newBmpHeight = bmpHeight * scale
-        val translateX = (width - newBmpWidth) / 2f
-        val translateY = (height - newBmpHeight) / 2f
-
-
-        stickerMatrix.reset()
-        stickerMatrix.postScale(scale, scale)
-        stickerMatrix.postTranslate(translateX, translateY)
+        textMatrix.reset()
+        textMatrix.postTranslate(translateX, translateY)
 
         isMatrixInitialized = true
         invalidate()
     }
 
+    private fun updateBitmapAndMatrix() {
+        if (textView.layoutParams == null) {
+            textView.layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val oldBitmap = textBitmap
+        textView.measure(
+            MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+            MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        )
+        if (textView.measuredWidth == 0 || textView.measuredHeight == 0) return
+
+        val newBitmap =
+            createBitmap(textView.measuredWidth, textView.measuredHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(newBitmap)
+
+        if (outlineWidth > 0) {
+            val originalPaint = textView.paint
+            val originalColor = textView.currentTextColor
+
+            originalPaint.style = Paint.Style.STROKE
+            originalPaint.strokeWidth = outlineWidth
+            textView.setTextColor(outlineColor)
+            textView.layout(0, 0, textView.measuredWidth, textView.measuredHeight)
+            textView.draw(canvas)
+
+            originalPaint.style = Paint.Style.FILL
+            textView.setTextColor(originalColor)
+            textView.layout(0, 0, textView.measuredWidth, textView.measuredHeight)
+            textView.draw(canvas)
+        } else {
+            textView.layout(0, 0, textView.measuredWidth, textView.measuredHeight)
+            textView.draw(canvas)
+        }
+        textBitmap = newBitmap
+        if (oldBitmap == null) {
+            isMatrixInitialized = false
+            requestLayout()
+        } else {
+            invalidate()
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val bmp = stickerBitmap ?: return
+        val bmp = textBitmap ?: return
 
 
-        canvas.withMatrix(stickerMatrix) {
-
+        canvas.withMatrix(textMatrix) {
             drawBitmap(bmp, 0f, 0f, null)
             if (isFocus)
                 drawRect(0f, 0f, bmp.width.toFloat(), bmp.height.toFloat(), borderPaint)
@@ -129,10 +205,11 @@ class StickerView(
 
         if (isFocus)
             drawHandles(canvas)
+
     }
 
     private fun drawHandles(canvas: Canvas) {
-        val bmp = stickerBitmap ?: return
+        val bmp = textBitmap ?: return
 
 
         val points = floatArrayOf(
@@ -143,7 +220,7 @@ class StickerView(
         )
 
 
-        stickerMatrix.mapPoints(points)
+        textMatrix.mapPoints(points)
 
         val topLeftX = points[0]
         val topLeftY = points[1]
@@ -180,8 +257,14 @@ class StickerView(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+
+        if (gestureDetector.onTouchEvent(event)) {
+            return true
+        }
+
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+
                 when {
                     deleteHandleRect.contains(event.x, event.y) -> {
                         onDeleteListener?.invoke()
@@ -224,7 +307,7 @@ class StickerView(
                     StickerActionMode.DRAG -> {
                         val dx = event.x - lastX
                         val dy = event.y - lastY
-                        stickerMatrix.postTranslate(dx, dy)
+                        textMatrix.postTranslate(dx, dy)
                         lastX = event.x
                         lastY = event.y
                     }
@@ -244,13 +327,13 @@ class StickerView(
                             getAngle(stickerCenterPoint.x, stickerCenterPoint.y, event.x, event.y)
                         val angle = newAngle - startAngle
 
-                        stickerMatrix.postScale(
+                        textMatrix.postScale(
                             scale,
                             scale,
                             stickerCenterPoint.x,
                             stickerCenterPoint.y
                         )
-                        stickerMatrix.postRotate(angle, stickerCenterPoint.x, stickerCenterPoint.y)
+                        textMatrix.postRotate(angle, stickerCenterPoint.x, stickerCenterPoint.y)
 
                         startDistance = newDistance
                         startAngle = newAngle
@@ -270,9 +353,9 @@ class StickerView(
 
 
     private fun updateCenterPoint() {
-        val bmp = stickerBitmap ?: return
+        val bmp = textBitmap ?: return
         val points = floatArrayOf(0f, 0f, bmp.width.toFloat(), bmp.height.toFloat())
-        stickerMatrix.mapPoints(points)
+        textMatrix.mapPoints(points)
         stickerCenterPoint.set((points[0] + points[2]) / 2, (points[1] + points[3]) / 2)
     }
 
@@ -285,9 +368,9 @@ class StickerView(
     }
 
     private fun isInsideSticker(event: MotionEvent): Boolean {
-        val bmp = stickerBitmap ?: return false
+        val bmp = textBitmap ?: return false
         val invertedMatrix = Matrix()
-        stickerMatrix.invert(invertedMatrix)
+        textMatrix.invert(invertedMatrix)
         val points = floatArrayOf(event.x, event.y)
         invertedMatrix.mapPoints(points)
         val x = points[0]

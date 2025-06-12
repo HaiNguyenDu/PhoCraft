@@ -4,7 +4,7 @@
     android:layout_width="@dimen/size_40"
     android:layout_height="@dimen/size_40"
     android:layout_marginHorizontal="@dimen/size_5"
-    android:layout_marginVertical="@dimen/size_10"
+    android:layout_marginVertical="@dimen/size_5"
     android:backgroundTint="@color/black"
     android:elevation="@dimen/size_5"
     app:cardCornerRadius="@dimen/size_30" />
