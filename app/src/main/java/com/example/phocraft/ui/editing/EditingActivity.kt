@@ -1,8 +1,13 @@
 package com.example.phocraft.ui.editing
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
+import android.view.WindowInsetsController
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +22,7 @@ import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityEditingBinding
 import com.example.phocraft.enum.EditingUiState
 import com.example.phocraft.ui.editing.adapter.ColorAdapter
+import com.example.phocraft.ui.editing.adapter.FontAdapter
 import com.example.phocraft.ui.editing.adapter.StickerAdapter
 import com.example.phocraft.utils.CONVERT_PAINT_WIDTH
 import com.example.phocraft.utils.GlobalValue
@@ -24,27 +30,53 @@ import com.example.phocraft.utils.GlobalValue
 class EditingActivity : AppCompatActivity() {
     private val binding by lazy { ActivityEditingBinding.inflate(layoutInflater) }
     private val viewModel: EditingViewModel by viewModels()
+    var slideUpFadeIn: Animation? = null
+
+    var slideUpFadeOut: Animation? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(binding.root)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.let {
+                it.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    )
+        }
         setUpUi()
         setOnClick()
         observeLiveData()
+        setUpSeekBar()
     }
 
     private fun setUpUi() {
-
         if (GlobalValue.currPhotoUri == null) return
+        binding.imageEditorView.onMainState = {
+            onMainState()
+        }
+        slideUpFadeIn = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in)
+        slideUpFadeOut = AnimationUtils.loadAnimation(this, R.anim.slide_down_fate_out)
         viewModel.setPhoto(GlobalValue.currPhotoUri!!)
-
         val listColorId = viewModel.listColor.value ?: emptyList()
 
         val colorAdapter = ColorAdapter(this, listColorId) { color ->
-            binding.imageEditorView.setPenColor(color)
-            viewModel.setEraser(false)
-            Toast.makeText(this, R.string.color_change, Toast.LENGTH_SHORT).show()
+            if (viewModel.uiState.value == EditingUiState.DRAW) {
+                binding.imageEditorView.setPenColor(color)
+                viewModel.setEraser(false)
+                Toast.makeText(this, R.string.color_change, Toast.LENGTH_SHORT).show()
+            } else if (binding.layoutStrokeSize.isVisible) {
+                binding.imageEditorView.setOutline(color)
+            } else if (viewModel.uiState.value == EditingUiState.TEXT) {
+                binding.imageEditorView.setTextColor(color)
+                Toast.makeText(this, R.string.color_change, Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.rcvColor.apply {
@@ -64,6 +96,20 @@ class EditingActivity : AppCompatActivity() {
             adapter = stickerAdapter
         }
 
+        val listFont = viewModel.listFont.value ?: emptyList()
+        val fontAdapter = FontAdapter(this, listFont) {
+            binding.imageEditorView.setFont(it.typeface)
+        }
+        binding.rcvFont.apply {
+            layoutManager =
+                LinearLayoutManager(this@EditingActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = fontAdapter
+        }
+
+
+    }
+
+    private fun setUpSeekBar() {
         binding.sizeSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(
                 p0: SeekBar?,
@@ -81,7 +127,24 @@ class EditingActivity : AppCompatActivity() {
             }
 
         })
+        binding.seekbarSizeStroke.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                p0: SeekBar?,
+                p1: Int,
+                p2: Boolean,
+            ) {
+                val width = p1.toFloat() - 15f
+                binding.imageEditorView.setOutline(null, width)
+            }
 
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+            }
+
+        })
     }
 
     private fun observeLiveData() {
@@ -132,7 +195,12 @@ class EditingActivity : AppCompatActivity() {
 
     private fun setOnClick() {
         binding.btnText.setOnClickListener {
-            viewModel.setUiState(state = EditingUiState.TEXT)
+            viewModel.setUiState(EditingUiState.TEXT)
+            binding.imageEditorView.addText({
+                onTextState()
+            }, {
+                viewModel.setUiState(EditingUiState.TEXT)
+            })
         }
         binding.btnArt.setOnClickListener {
             binding.imageEditorView.setDrawingMode(true)
@@ -143,8 +211,16 @@ class EditingActivity : AppCompatActivity() {
         }
 
         binding.btnSaveCircle.setOnClickListener {
-            if(viewModel.uiState.value == EditingUiState.STICKER){
-                binding.imageEditorView.saveSticker()
+            when (viewModel.uiState.value) {
+                EditingUiState.STICKER -> {
+                    binding.imageEditorView.saveSticker()
+                }
+
+                EditingUiState.TEXT -> {
+                    binding.imageEditorView.saveText()
+                }
+
+                else -> {}
             }
             viewModel.setUiState(EditingUiState.MAIN)
         }
@@ -153,6 +229,7 @@ class EditingActivity : AppCompatActivity() {
             viewModel.setUiState(EditingUiState.STICKER)
         }
         setOnClickDrawState()
+        setOnClickTextState()
     }
 
     private fun setOnClickDrawState() {
@@ -196,6 +273,82 @@ class EditingActivity : AppCompatActivity() {
         }
     }
 
+    private fun setOnClickTextState() {
+        binding.apply {
+            btnFont.setOnClickListener {
+                val viewToFocus = if (rcvFont.isVisible) null else btnFont
+                setFocusBtnText(viewToFocus)
+            }
+            btnColorText.setOnClickListener {
+                val viewToFocus =
+                    if (rcvColor.isVisible && layoutStrokeSize.isGone) null else btnColorText
+                setFocusBtnText(viewToFocus)
+            }
+            btnStroke.setOnClickListener {
+                val viewToFocus = if (layoutStrokeSize.isVisible) null else btnStroke
+                setFocusBtnText(viewToFocus)
+            }
+        }
+    }
+
+    private fun setFocusBtnDraw(view: View? = null) {
+        binding.layoutBtnArtLinear.children.forEach {
+            if (it == view)
+                it.setBackgroundResource(R.drawable.bg_white_border)
+            else {
+                if (it == binding.btnEraser)
+                    binding.imageEditorView.setEraserMode(false)
+                it.setBackgroundResource(R.drawable.bg_no_border)
+            }
+        }
+    }
+
+    private fun setFocusBtnText(view: View? = null) {
+        binding.apply {
+            btnFont.setBackgroundResource(R.drawable.bg_no_border)
+            btnColorText.setBackgroundResource(R.drawable.bg_no_border)
+            btnStroke.setBackgroundResource(R.drawable.bg_no_border)
+
+            if (rcvFont.isVisible) {
+                rcvFont.visibility = View.GONE
+                rcvFont.startAnimation(slideUpFadeOut)
+            }
+            if (rcvColor.isVisible) {
+                rcvColor.visibility = View.GONE
+                rcvColor.startAnimation(slideUpFadeOut)
+            }
+
+            if (layoutStrokeSize.isVisible)
+            {
+                layoutStrokeSize.visibility = View.GONE
+                layoutStrokeSize.startAnimation(slideUpFadeOut)
+            }
+            when (view) {
+                btnFont -> {
+                    btnFont.setBackgroundResource(R.drawable.bg_white_border)
+                    rcvFont.visibility = View.VISIBLE
+                    rcvFont.startAnimation(slideUpFadeIn)
+                }
+
+                btnColorText -> {
+                    btnColorText.setBackgroundResource(R.drawable.bg_white_border)
+                    rcvColor.visibility = View.VISIBLE
+                    rcvColor.startAnimation(slideUpFadeIn)
+                }
+
+                btnStroke -> {
+                    btnStroke.setBackgroundResource(R.drawable.bg_white_border)
+                    rcvColor.visibility = View.VISIBLE
+                    layoutStrokeSize.visibility = View.VISIBLE
+                    rcvColor.startAnimation(slideUpFadeIn)
+                    seekbarSizeStroke.progress = imageEditorView.getStrokeWidth()!!
+                    layoutStrokeSize.startAnimation(slideUpFadeIn)
+
+                }
+            }
+        }
+    }
+
     private fun setOnClickBtnBack() {
         when (viewModel.uiState.value) {
             EditingUiState.MAIN -> {
@@ -223,6 +376,11 @@ class EditingActivity : AppCompatActivity() {
                 binding.imageEditorView.exitSticker()
             }
 
+            EditingUiState.TEXT -> {
+                viewModel.setUiState(EditingUiState.MAIN)
+                binding.imageEditorView.exitText()
+            }
+
             else -> {
             }
         }
@@ -240,6 +398,8 @@ class EditingActivity : AppCompatActivity() {
                 listOf(layoutBtnMain),
                 View.GONE
             )
+            setFocusBtnText()
+            setFocusBtnDraw()
             imageEditorView.setDrawingMode(false)
         }
     }
@@ -261,12 +421,18 @@ class EditingActivity : AppCompatActivity() {
     }
 
     private fun onTextState() {
-        setOtherButtonsVisibility(
-            binding.layoutBtn,
-            listOf(binding.layoutBtnText),
-            View.GONE
-        )
-        binding.layoutBtnText.fadeIn()
+        if (binding.layoutBtnText.isGone) {
+            setOtherButtonsVisibility(
+                binding.layoutBtn,
+                listOf(binding.layoutBtnText),
+                View.GONE
+            )
+            binding.apply {
+                layoutBtnText.fadeIn()
+                btnSaveCircle.fadeIn()
+                btnSave.visibility = View.GONE
+            }
+        }
     }
 
     private fun setOtherButtonsVisibility(
