@@ -10,10 +10,8 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
 import androidx.core.view.children
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -24,14 +22,14 @@ import com.example.phocraft.enum.EditingUiState
 import com.example.phocraft.ui.editing.adapter.ColorAdapter
 import com.example.phocraft.ui.editing.adapter.FontAdapter
 import com.example.phocraft.ui.editing.adapter.StickerAdapter
+import com.example.phocraft.utils.BitmapCacheManager
 import com.example.phocraft.utils.CONVERT_PAINT_WIDTH
-import com.example.phocraft.utils.GlobalValue
+import com.example.phocraft.utils.CURRENT_PHOTO_KEY
 
 class EditingActivity : AppCompatActivity() {
     private val binding by lazy { ActivityEditingBinding.inflate(layoutInflater) }
     private val viewModel: EditingViewModel by viewModels()
     var slideUpFadeIn: Animation? = null
-
     var slideUpFadeOut: Animation? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,13 +55,17 @@ class EditingActivity : AppCompatActivity() {
     }
 
     private fun setUpUi() {
-        if (GlobalValue.currPhotoUri == null) return
+        val currPhoto = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
+        if (currPhoto == null) {
+            finish()
+            return
+        }
+        binding.imageEditorView.setImageBitmap(currPhoto)
         binding.imageEditorView.onMainState = {
             onMainState()
         }
         slideUpFadeIn = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in)
         slideUpFadeOut = AnimationUtils.loadAnimation(this, R.anim.slide_down_fate_out)
-        viewModel.setPhoto(GlobalValue.currPhotoUri!!)
         val listColorId = viewModel.listColor.value ?: emptyList()
 
         val colorAdapter = ColorAdapter(this, listColorId) { color ->
@@ -169,6 +171,10 @@ class EditingActivity : AppCompatActivity() {
                     onStickerState()
                 }
 
+                EditingUiState.CROP -> {
+                    onCropState()
+                }
+
                 else -> {
                     onMainState()
                 }
@@ -228,8 +234,12 @@ class EditingActivity : AppCompatActivity() {
         binding.btnFilter.setOnClickListener {
             viewModel.setUiState(EditingUiState.STICKER)
         }
+        binding.btnCrop.setOnClickListener {
+            viewModel.setUiState(EditingUiState.CROP)
+        }
         setOnClickDrawState()
         setOnClickTextState()
+        setOnclickCropState()
     }
 
     private fun setOnClickDrawState() {
@@ -247,9 +257,11 @@ class EditingActivity : AppCompatActivity() {
                 }
                 if (rcvColor.isGone) {
                     rcvColor.fadeIn()
+                    rcvColor.startAnimation(slideUpFadeIn)
                     btnColorDraw.setBackgroundResource(R.drawable.bg_white_border)
                 } else {
                     rcvColor.visibility = View.GONE
+                    rcvColor.startAnimation(slideUpFadeOut)
                     btnColorDraw.setBackgroundResource(R.drawable.bg_no_border)
                 }
 
@@ -318,8 +330,7 @@ class EditingActivity : AppCompatActivity() {
                 rcvColor.startAnimation(slideUpFadeOut)
             }
 
-            if (layoutStrokeSize.isVisible)
-            {
+            if (layoutStrokeSize.isVisible) {
                 layoutStrokeSize.visibility = View.GONE
                 layoutStrokeSize.startAnimation(slideUpFadeOut)
             }
@@ -349,7 +360,84 @@ class EditingActivity : AppCompatActivity() {
         }
     }
 
+    private fun onCropState() {
+        binding.cropImageView.setAspectRatio(
+            binding.imageEditorView.getBitmap().width,
+            binding.imageEditorView.getBitmap().height
+        )
+        setFocusBtnRatio(binding.btnCropFree)
+        val currentBitmap = binding.imageEditorView.getBitmap()
+        if (currentBitmap == null) {
+            Toast.makeText(this, "Không có ảnh để cắt", Toast.LENGTH_SHORT).show()
+            return
+        }
+        setOtherButtonsVisibility(binding.root, listOf(), View.GONE)
+        binding.cropContainer.visibility = View.VISIBLE
+        binding.cropImageView.setImageBitmap(currentBitmap)
+        binding.layoutBtnCrop.startAnimation(slideUpFadeIn)
+    }
+
+    private fun endCropMode(shouldSaveChanges: Boolean) {
+        if (shouldSaveChanges) {
+
+            val croppedBitmap = binding.cropImageView.getCroppedImage()
+            binding.imageEditorView.clearAllLayers()
+            binding.imageEditorView.setImageBitmap(
+                croppedBitmap ?: binding.imageEditorView.getBitmap()
+            )
+
+        }
+        onMainState()
+    }
+
+    private fun setOnclickCropState() {
+        binding.apply {
+            btnBackCrop.setOnClickListener {
+                endCropMode(false)
+            }
+            btnSaveCrop.setOnClickListener {
+                endCropMode(true)
+            }
+            btnCrop11.setOnClickListener {
+                val width = binding.imageEditorView.getImageWidth().toInt()
+                cropImageView.setAspectRatio(width, width)
+                cropImageView.setFixedAspectRatio(true)
+                setFocusBtnRatio(btnCrop11)
+            }
+            btnCrop34.setOnClickListener {
+                val width = binding.imageEditorView.getImageWidth().toInt()
+                cropImageView.setAspectRatio(width, width * 4 / 3)
+                cropImageView.setFixedAspectRatio(true)
+                setFocusBtnRatio(btnCrop34)
+            }
+            btnCrop916.setOnClickListener {
+                val width = binding.imageEditorView.getImageWidth().toInt()
+                cropImageView.setAspectRatio(width, width * 16 / 9)
+                cropImageView.setFixedAspectRatio(true)
+                setFocusBtnRatio(btnCrop916)
+            }
+            btnCropLock.setOnClickListener {
+                cropImageView.setFixedAspectRatio(true)
+                setFocusBtnRatio(btnCropLock)
+            }
+            btnCropFree.setOnClickListener {
+                cropImageView.setFixedAspectRatio(false)
+                setFocusBtnRatio(btnCropFree)
+            }
+        }
+    }
+
+    private fun setFocusBtnRatio(view: View) {
+        for (i in binding.layoutBtnCrop.children) {
+            if (i == view)
+                i.setBackgroundResource(R.drawable.bg_white_border)
+            else
+                i.setBackgroundResource(R.drawable.bg_no_border)
+        }
+    }
+
     private fun setOnClickBtnBack() {
+        viewModel.setUiState(EditingUiState.MAIN)
         when (viewModel.uiState.value) {
             EditingUiState.MAIN -> {
                 finish()
@@ -362,23 +450,22 @@ class EditingActivity : AppCompatActivity() {
                         clearCanvas()
                     }
                 }
-                viewModel.setUiState(EditingUiState.MAIN)
             }
 
             EditingUiState.STICKER -> {
-                if (viewModel.uiState.value == EditingUiState.DRAW) {
-                    binding.imageEditorView.apply {
-                        setDrawingMode(false)
-                        clearCanvas()
-                    }
-                }
-                viewModel.setUiState(EditingUiState.MAIN)
                 binding.imageEditorView.exitSticker()
             }
 
             EditingUiState.TEXT -> {
-                viewModel.setUiState(EditingUiState.MAIN)
                 binding.imageEditorView.exitText()
+            }
+
+            EditingUiState.CROP -> {
+                BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
+                BitmapCacheManager.addBitmapToMemoryCache(
+                    CURRENT_PHOTO_KEY,
+                    binding.imageEditorView.getBitmap()
+                )
             }
 
             else -> {
@@ -428,6 +515,7 @@ class EditingActivity : AppCompatActivity() {
                 View.GONE
             )
             binding.apply {
+                btnBack.visibility = View.GONE
                 layoutBtnText.fadeIn()
                 btnSaveCircle.fadeIn()
                 btnSave.visibility = View.GONE
@@ -455,5 +543,10 @@ class EditingActivity : AppCompatActivity() {
             .alpha(1f)
             .setDuration(duration)
             .start()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
     }
 }

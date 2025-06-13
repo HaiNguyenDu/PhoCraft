@@ -13,4 +13,6 @@
     <string name="color_change">Color Changed Successfully</string>
     <string name="eraser">Eraser</string>
     <string name="paint_size">Paint Size</string>
+    <string name="free">Free</string>
+    <string name="_3_4">3:4</string>
 </resources>

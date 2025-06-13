@@ -3,14 +3,17 @@ package com.example.phocraft.views
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withMatrix
+import androidx.core.graphics.withSave
 import androidx.core.view.children
-import com.example.phocraft.model.TextState
 
 class PhotoEditorView(
     context: Context,
@@ -23,11 +26,11 @@ class PhotoEditorView(
     private var isDrawingMode = false
     private val listStickerCurrent = mutableListOf<StickerView>()
     private var currentText: CustomTextView? = null
-    private var originalTextState: TextState? = null
 
     lateinit var onMainState: () -> Unit
 
     init {
+
         imageView = ImageView(context).apply {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
             scaleType = ImageView.ScaleType.FIT_CENTER
@@ -59,23 +62,67 @@ class PhotoEditorView(
         return super.onInterceptTouchEvent(ev)
     }
 
-    override fun dispatchDraw(canvas: Canvas) {
-        canvas.save()
+    fun getBitmap(): Bitmap {
         val drawable = imageView.drawable
-        if (drawable != null) {
-            val matrix = imageView.imageMatrix
+        val originalImageWidth = drawable.intrinsicWidth
+        val originalImageHeight = drawable.intrinsicHeight
+        val resultBitmap =
+            createBitmap(originalImageWidth, originalImageHeight)
+        val canvas = Canvas(resultBitmap)
+        drawable.draw(canvas)
+        val inverseMatrix = Matrix()
+        if (imageView.imageMatrix.invert(inverseMatrix)) {
 
-            val imageRect =
-                RectF(0f, 0f, drawable.intrinsicWidth.toFloat(), drawable.intrinsicHeight.toFloat())
-
-            matrix.mapRect(imageRect)
-
-            canvas.clipRect(imageRect)
+            canvas.withMatrix(inverseMatrix) {
+                stickerContainer.draw(this)
+                textContainer.draw(this)
+                drawView.draw(this)
+            }
         }
 
-        super.dispatchDraw(canvas)
+        return resultBitmap
 
-        canvas.restore()
+    }
+
+    fun getImageWidth(): Float {
+        return imageView.drawable.intrinsicWidth.toFloat()
+    }
+
+    fun clearAllLayers() {
+        drawView.clearCanvas()
+
+        stickerContainer.removeAllViews()
+
+        textContainer.removeAllViews()
+
+        listStickerCurrent.clear()
+
+        onClickItem()
+        currentText = null
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        canvas.withSave() {
+            val drawable = imageView.drawable
+            if (drawable != null) {
+                val matrix = imageView.imageMatrix
+
+                val imageRect =
+                    RectF(
+                        0f,
+                        0f,
+                        drawable.intrinsicWidth.toFloat(),
+                        drawable.intrinsicHeight.toFloat()
+                    )
+
+                matrix.mapRect(imageRect)
+
+                clipRect(imageRect)
+            }
+
+            super.dispatchDraw(this)
+
+        }
     }
 
     fun setPenColor(newColor: Int) = drawView.setPenColor(newColor)

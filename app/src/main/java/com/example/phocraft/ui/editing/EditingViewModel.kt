@@ -4,11 +4,9 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.view.animation.AnimationUtils
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.phocraft.R
 import com.example.phocraft.data.repositories.ColorRepository
 import com.example.phocraft.data.repositories.FontRepository
 import com.example.phocraft.data.repositories.StickerRepository

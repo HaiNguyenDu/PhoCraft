@@ -350,4 +350,168 @@
             android:layout_height="match_parent"
             android:visibility="gone" />
     </FrameLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/crop_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg"
+        android:visibility="visible">
+
+        <com.canhub.cropper.CropImageView
+            android:id="@+id/crop_image_view"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/size_0"
+            app:layout_constraintBottom_toTopOf="@+id/scroll_layout_btn_crop"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/btn_back_crop"
+            android:layout_width="@dimen/size_30"
+            android:layout_height="@dimen/size_30"
+            android:layout_marginStart="@dimen/size_20"
+            android:layout_marginTop="@dimen/size_40"
+            android:src="@drawable/ic_exit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/btn_save_crop"
+            android:layout_width="@dimen/size_60"
+            android:layout_height="@dimen/size_30"
+            android:layout_marginTop="@dimen/size_40"
+            android:layout_marginEnd="@dimen/size_20"
+            android:src="@drawable/ic_save"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <HorizontalScrollView
+            android:id="@+id/scroll_layout_btn_crop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@color/black"
+            android:paddingBottom="@dimen/size_10"
+            android:scrollbars="none"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <LinearLayout
+                android:id="@+id/layout_btn_crop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingBottom="@dimen/size_10">
+
+                <FrameLayout
+                    android:id="@+id/btn_crop_free"
+                    android:layout_width="@dimen/size_70"
+                    android:layout_height="@dimen/size_80"
+                    android:layout_margin="@dimen/size_10">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:fontFamily="@font/quicksand_bold"
+                        android:text="@string/free"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/font_12" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_crop_lock"
+                    android:layout_width="@dimen/size_70"
+                    android:layout_height="@dimen/size_80"
+                    android:layout_margin="@dimen/size_10"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="@dimen/size_24"
+                        android:layout_height="@dimen/size_24"
+                        android:src="@drawable/ic_lock" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/size_10"
+                        android:fontFamily="@font/quicksand_bold"
+                        android:text="Lock"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/font_12" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_crop_1_1"
+                    android:layout_width="@dimen/size_70"
+                    android:layout_height="@dimen/size_80"
+                    android:layout_margin="@dimen/size_10"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:layout_width="@dimen/size_24"
+                        android:layout_height="@dimen/size_24"
+                        android:background="@drawable/bg_btn_ratio" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/size_10"
+                        android:fontFamily="@font/quicksand_bold"
+                        android:text="@string/_1_1"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/font_12" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_crop_3_4"
+                    android:layout_width="@dimen/size_70"
+                    android:layout_height="@dimen/size_80"
+                    android:layout_margin="@dimen/size_10"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:layout_width="@dimen/size_18"
+                        android:layout_height="@dimen/size_24"
+                        android:background="@drawable/bg_btn_ratio" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/size_10"
+                        android:fontFamily="@font/quicksand_bold"
+                        android:text="@string/_3_4"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/font_12" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_crop_9_16"
+                    android:layout_width="@dimen/size_70"
+                    android:layout_height="@dimen/size_80"
+                    android:layout_margin="@dimen/size_10"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:layout_width="@dimen/size_14"
+                        android:layout_height="@dimen/size_24"
+                        android:background="@drawable/bg_btn_ratio" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/size_10"
+                        android:fontFamily="@font/quicksand_bold"
+                        android:text="@string/_16_9"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/font_12" />
+                </LinearLayout>
+            </LinearLayout>
+        </HorizontalScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
