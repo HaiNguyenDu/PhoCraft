@@ -1,5 +1,6 @@
 package com.example.phocraft.ui.detail_photo
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
@@ -8,15 +9,16 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
-import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityDetailPhotoBinding
+import com.example.phocraft.ui.editor.EditorActivity
+import com.example.phocraft.utils.BitmapCacheManager
+import com.example.phocraft.utils.CURRENT_PHOTO_KEY
+import com.example.phocraft.utils.PREVIOUS_PHOTO_KEY
 
 class DetailPhotoActivity : AppCompatActivity() {
     private val binding by lazy { ActivityDetailPhotoBinding.inflate(layoutInflater) }
+    lateinit var bitmap: Bitmap
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -35,10 +37,27 @@ class DetailPhotoActivity : AppCompatActivity() {
                     )
         }
         setUpUi()
+        setOnClick()
     }
 
     private fun setUpUi() {
-        val bitmap = intent.getParcelableExtra<Bitmap>("bitmap")
-//        Glide.with(this).load(bitmap).into(binding.iv)
+        val bitmapCache = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
+        bitmap = bitmapCache ?: return finish()
+        Glide.with(this)
+            .load(bitmap)
+            .into(binding.ivMain)
+    }
+
+    private fun setOnClick() {
+        binding.btnEdit.setOnClickListener {
+            BitmapCacheManager.addBitmapToMemoryCache(PREVIOUS_PHOTO_KEY, bitmap)
+            finish()
+            startActivity(Intent(this, EditorActivity::class.java))
+        }
+
+        binding.btnBack.setOnClickListener {
+            finish()
+            BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
+        }
     }
 }

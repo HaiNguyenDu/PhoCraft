@@ -1,4 +1,4 @@
-package com.example.phocraft.ui.editing.adapter
+package com.example.phocraft.ui.editor.adapter
 
 import android.graphics.Bitmap
 import android.view.LayoutInflater

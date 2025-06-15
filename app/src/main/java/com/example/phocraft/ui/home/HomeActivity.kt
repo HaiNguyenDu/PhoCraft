@@ -105,7 +105,6 @@ class HomeActivity : AppCompatActivity() {
 
         binding.apply {
             page.adapter = PageAdapter(this@HomeActivity)
-
             TabLayoutMediator(tabLayout, page) { tab, position ->
                 val customTab =
                     LayoutInflater.from(tab.parent?.context).inflate(R.layout.custom_tab, null)

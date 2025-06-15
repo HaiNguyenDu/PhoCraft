@@ -3,14 +3,26 @@ package com.example.phocraft.views
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.scale
+import androidx.core.graphics.withMatrix
+import androidx.core.graphics.withSave
 import androidx.core.view.children
-import com.example.phocraft.model.TextState
+import com.example.phocraft.enum.FilterType
+import com.example.phocraft.model.FilterItem
+import com.example.phocraft.model.PhotoAdjustments
+import com.example.phocraft.utils.BitmapCacheManager
+import com.example.phocraft.utils.CURRENT_PHOTO_KEY
+import com.example.phocraft.utils.ColorFilterManager
+import com.example.phocraft.utils.FilterManager
 
 class PhotoEditorView(
     context: Context,
@@ -20,11 +32,21 @@ class PhotoEditorView(
     private val drawView: DrawView
     private val stickerContainer: FrameLayout
     private var textContainer: FrameLayout
+    private val frameOverlayView: ImageView
+    private var currentFilterType: FilterType? = null
+    private var focusedText: CustomTextView? = null
     private var isDrawingMode = false
+    private var isFrameMode = false
+    private var isFilterMode = false
+    private var isAdjustmentMode = false
     private val listStickerCurrent = mutableListOf<StickerView>()
-    private var currentText: CustomTextView? = null
-    private var originalTextState: TextState? = null
 
+    private var originalBitmap: Bitmap? = null
+    private var previousFrame: Bitmap? = null
+
+    private var photoAdjustments: PhotoAdjustments = PhotoAdjustments()
+    private var previousAdjustments: PhotoAdjustments = PhotoAdjustments()
+    private var previousFilterType: FilterType? = null
     lateinit var onMainState: () -> Unit
 
     init {
@@ -50,43 +72,193 @@ class PhotoEditorView(
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         }
         addView(drawView)
+
+        frameOverlayView = ImageView(context).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
+        addView(frameOverlayView)
+    }
+
+    fun setFrame(frameBitmap: Bitmap?) {
+        if (frameBitmap == null) {
+            frameOverlayView.setImageDrawable(null)
+            frameOverlayView.visibility = GONE
+        } else {
+            val drawable = imageView.drawable
+            val fitBitmap =
+                frameBitmap.scale(drawable.intrinsicWidth, drawable.intrinsicHeight, false)
+            frameOverlayView.setImageBitmap(fitBitmap)
+            frameOverlayView.visibility = VISIBLE
+        }
+    }
+
+    fun setFilter(filterItem: FilterItem) {
+        currentFilterType = filterItem.type
+        val bitmap = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
+        val bitmapFilter = FilterManager.applyFilter(bitmap!!, filterItem.type)
+        originalBitmap = bitmapFilter
+        imageView.setImageBitmap(bitmapFilter)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (isDrawingMode) {
+        if (isDrawingMode || isFrameMode) {
             return false
         }
         return super.onInterceptTouchEvent(ev)
     }
 
-    override fun dispatchDraw(canvas: Canvas) {
-        canvas.save()
+    fun getBitmap(): Bitmap {
         val drawable = imageView.drawable
-        if (drawable != null) {
-            val matrix = imageView.imageMatrix
-
-            val imageRect =
-                RectF(0f, 0f, drawable.intrinsicWidth.toFloat(), drawable.intrinsicHeight.toFloat())
-
-            matrix.mapRect(imageRect)
-
-            canvas.clipRect(imageRect)
+        val originalImageWidth = drawable.intrinsicWidth
+        val originalImageHeight = drawable.intrinsicHeight
+        val resultBitmap =
+            createBitmap(originalImageWidth, originalImageHeight)
+        if (originalBitmap == null)
+            return resultBitmap
+        val canvas = Canvas(resultBitmap)
+        drawable.draw(canvas)
+        val inverseMatrix = Matrix()
+        if (imageView.imageMatrix.invert(inverseMatrix)) {
+            canvas.withMatrix(inverseMatrix) {
+                stickerContainer.draw(this)
+                frameOverlayView.draw(this)
+                textContainer.draw(this)
+                drawView.draw(this)
+            }
         }
 
-        super.dispatchDraw(canvas)
-
-        canvas.restore()
+        return resultBitmap
     }
 
+    fun getImageWidth(): Float {
+        return imageView.drawable.intrinsicWidth.toFloat()
+    }
+
+    fun clearAllLayers() {
+        drawView.clearCanvas()
+        stickerContainer.removeAllViews()
+        textContainer.removeAllViews()
+        listStickerCurrent.clear()
+        currentFilterType = null
+        frameOverlayView.visibility = GONE
+        previousFrame = null
+        previousAdjustments = PhotoAdjustments()
+        photoAdjustments = PhotoAdjustments()
+        previousFilterType = null
+        onClickItem()
+        focusedText = null
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        canvas.withSave() {
+            val drawable = imageView.drawable
+            if (drawable != null) {
+                val matrix = imageView.imageMatrix
+
+                val imageRect =
+                    RectF(
+                        0f,
+                        0f,
+                        drawable.intrinsicWidth.toFloat(),
+                        drawable.intrinsicHeight.toFloat()
+                    )
+
+                matrix.mapRect(imageRect)
+
+                clipRect(imageRect)
+            }
+
+            super.dispatchDraw(this)
+
+        }
+    }
+
+    //    fun getColorPain(): Color = drawView.getC
+
+    fun getPenColor(): Int? {
+        return drawView.getPaintColor()
+    }
+
+    fun getTextColor(): Int? = focusedText?.getTextColor()
+    fun getStrokeColor(): Int? = focusedText?.getStrokeColor()
     fun setPenColor(newColor: Int) = drawView.setPenColor(newColor)
     fun setPenWidth(newWidth: Float) = drawView.setPenWidth(newWidth)
     fun setEraserMode(isEnabled: Boolean) = drawView.setEraserMode(isEnabled)
     fun undo() = drawView.undo()
     fun redo() = drawView.redo()
     fun clearCanvas() = drawView.clearCanvas()
-
+    fun getFilterType(): FilterType? = previousFilterType
     fun setImageBitmap(bitmap: Bitmap) {
-        imageView.setImageBitmap(bitmap)
+        originalBitmap = bitmap
+        if (previousFrame != null)
+            imageView.setImageBitmap(bitmap)
+        resetAdjustments()
+    }
+
+    private fun applyColorAdjustments(adjustments: PhotoAdjustments) {
+        val bmp = originalBitmap ?: return
+
+        val adjustedBitmap = ColorFilterManager.applyAdjustments(
+            originalBitmap = bmp,
+            brightness = adjustments.brightness,
+            contrast = adjustments.contrast,
+            saturation = adjustments.saturation,
+            hue = adjustments.hue
+        )
+        imageView.setImageBitmap(adjustedBitmap)
+    }
+
+    fun setBrightness(value: Int) {
+        this.photoAdjustments.brightness = value
+        applyColorAdjustments(photoAdjustments)
+    }
+
+    fun setContrast(value: Float) {
+        this.photoAdjustments.contrast = value
+        applyColorAdjustments(photoAdjustments)
+    }
+
+    fun setSaturation(value: Float) {
+        this.photoAdjustments.saturation = value
+        applyColorAdjustments(photoAdjustments)
+    }
+
+    fun setHue(value: Float) {
+        this.photoAdjustments.hue = value
+        applyColorAdjustments(photoAdjustments)
+    }
+
+    fun getCurrentTextSizeInSp(): Float? {
+        return focusedText?.getTextSizeInSp()
+    }
+
+    fun getAdjustment(): PhotoAdjustments {
+        return photoAdjustments
+    }
+
+    fun resetAdjustments() {
+        photoAdjustments = previousAdjustments.copy()
+        applyColorAdjustments(photoAdjustments)
+    }
+
+    fun exitAdjustments() {
+        photoAdjustments = previousAdjustments.copy()
+        applyColorAdjustments(photoAdjustments)
+    }
+
+    fun saveAdjustments() {
+        previousAdjustments = photoAdjustments.copy()
+        val bitmap = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
+        val adjustedBitmap = ColorFilterManager.applyAdjustments(
+            originalBitmap = bitmap!!,
+            brightness = photoAdjustments.brightness,
+            contrast = photoAdjustments.contrast,
+            saturation = photoAdjustments.saturation,
+            hue = photoAdjustments.hue
+        )
+        BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
+        BitmapCacheManager.addBitmapToMemoryCache(CURRENT_PHOTO_KEY, adjustedBitmap)
     }
 
     fun setDrawingMode(isEnabled: Boolean) {
@@ -95,6 +267,25 @@ class PhotoEditorView(
         if (isEnabled) {
             onClickItem(null)
         }
+    }
+
+    fun saveFilter() {
+        previousFilterType = currentFilterType
+        currentFilterType = null
+    }
+
+    fun exitFilter() {
+        val bitmap = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
+        val filteredBitmap =
+            if (previousFilterType != null || previousFilterType == FilterType.NONE) FilterManager.applyFilter(
+                bitmap!!,
+                previousFilterType!!
+            )
+            else bitmap
+
+        originalBitmap = filteredBitmap
+        imageView.setImageBitmap(filteredBitmap)
+        currentFilterType = null
     }
 
     fun addSticker(stickerBitmap: Bitmap) {
@@ -121,11 +312,11 @@ class PhotoEditorView(
                 onClickItem(null, this)
                 onTextState()
                 setTextState()
-                currentText = it
+                focusedText = it
             }
             onDeleteListener = {
                 textContainer.removeView(this)
-                currentText = null
+                focusedText = null
                 onClickItem()
             }
             onDoubleTapListener = {
@@ -133,18 +324,13 @@ class PhotoEditorView(
             }
         }
         textContainer.addView(customTextView, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-        currentText = customTextView
+        focusedText = customTextView
         onClickItem(null, customTextView)
     }
 
     fun saveText() {
-        currentText = null
-//        originalTextState = null
+        focusedText = null
         onClickItem()
-    }
-
-    fun exitText() {
-//        currentText?.restoreState(originalTextState!!)
     }
 
     fun saveSticker() {
@@ -153,11 +339,11 @@ class PhotoEditorView(
     }
 
     fun setOutline(color: Int? = null, width: Float? = null) {
-        currentText?.setOutline(color, width)
+        focusedText?.setOutline(color, width)
     }
 
     fun getStrokeWidth(): Int? {
-        return currentText?.getStrokeWidth()?.toInt()
+        return focusedText?.getStrokeWidth()?.toInt()
     }
 
     fun exitSticker() {
@@ -169,15 +355,39 @@ class PhotoEditorView(
     }
 
     fun setTextSize(size: Float) {
-        currentText?.setTextSize(size)
+        focusedText?.setTextSize(size)
     }
 
     fun setTextColor(color: Int) {
-        currentText?.setTextColor(color)
+        focusedText?.setTextColor(color)
     }
 
     fun setFont(typeface: Typeface) {
-        currentText?.setFont(typeface)
+        focusedText?.setFont(typeface)
+    }
+
+    fun exitFrame() {
+        if (previousFrame != null) {
+            frameOverlayView.setImageBitmap(previousFrame)
+        } else {
+            setFrame(null)
+        }
+    }
+
+    fun saveFrame() {
+        previousFrame = frameOverlayView.drawable.toBitmap()
+    }
+
+    fun setFrameMode(state: Boolean) {
+        isFrameMode = state
+    }
+
+    fun setFilterMode(state: Boolean) {
+        isFilterMode = state
+    }
+
+    fun setAdjustmentMode(state: Boolean) {
+        isAdjustmentMode = state
     }
 
     fun onClickItem(stickerView: StickerView? = null, textView: CustomTextView? = null) {
@@ -192,9 +402,9 @@ class PhotoEditorView(
             } else textView.setIsFocus(true)
         }
         if (textView == null) {
-            if (!isDrawingMode && stickerView == null)
+            if (!isDrawingMode && !isFrameMode && !isFilterMode && !isAdjustmentMode && stickerView == null)
                 onMainState()
-            currentText = null
-        } else currentText = textView
+            focusedText = null
+        } else focusedText = textView
     }
 }

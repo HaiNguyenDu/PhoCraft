@@ -45,7 +45,7 @@ class StickerView(
         style = Paint.Style.STROKE
         color = Color.WHITE
         strokeWidth = 3f
-        pathEffect = DashPathEffect(floatArrayOf(10f, 10f), 0f) // Viền nét đứt
+        pathEffect = DashPathEffect(floatArrayOf(10f, 10f), 0f)
     }
 
     private val deleteHandleBitmap: Bitmap

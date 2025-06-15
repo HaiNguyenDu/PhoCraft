@@ -30,6 +30,12 @@
         android:theme="@style/Theme.PhoCraft"
         tools:targetApi="31">
         <activity
+            android:name=".SavePhotoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SvaePhotoActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.detail_photo.DetailPhotoActivity"
             android:exported="false" />
 
@@ -38,8 +44,8 @@
             android:value="face" />
 
         <activity
-            android:name=".ui.editing.EditingActivity"
-            android:exported="false"></activity>
+            android:name=".ui.editor.EditorActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -59,6 +65,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

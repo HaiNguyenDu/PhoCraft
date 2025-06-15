@@ -39,6 +39,7 @@ android {
 }
 val cameraxVersion = "1.2.2"
 dependencies {
+    implementation("com.vanniktech:android-image-cropper:4.6.0")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
     implementation("com.google.android.gms:play-services-mlkit-face-detection:17.1.0")
     implementation("androidx.camera:camera-core:$cameraxVersion")

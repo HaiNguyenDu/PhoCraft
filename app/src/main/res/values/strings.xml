@@ -13,4 +13,17 @@
     <string name="color_change">Color Changed Successfully</string>
     <string name="eraser">Eraser</string>
     <string name="paint_size">Paint Size</string>
+    <string name="free">Free</string>
+    <string name="_3_4">3:4</string>
+    <string name="changes_will_not_be_saved">Changes will not be saved</string>
+    <string name="crop">Crop</string>
+    <string name="sticker">Sticker</string>
+    <string name="adjust">Adjustment</string>
+    <string name="draw">Draw</string>
+    <string name="text">Text</string>
+    <string name="frame">Frame</string>
+    <string name="filter">Filter</string>
+    <string name="edit">Edit</string>
+    <string name="share">Share</string>
+    <string name="restore">Restore</string>
 </resources>

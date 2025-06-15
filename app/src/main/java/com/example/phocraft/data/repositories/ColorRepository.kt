@@ -5,6 +5,7 @@ import com.example.phocraft.R
 class ColorRepository {
     fun getListColorId(): List<Int> {
         return listOf<Int>(
+            R.color.white,
             R.color.light_blue,
             R.color.soft_pink,
             R.color.mint_green,

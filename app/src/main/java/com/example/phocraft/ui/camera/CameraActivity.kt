@@ -1,5 +1,6 @@
 package com.example.phocraft.ui.camera
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Build
@@ -26,7 +27,6 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.children
 import androidx.core.view.isGone
 import androidx.lifecycle.lifecycleScope
@@ -38,6 +38,9 @@ import com.example.phocraft.enum.FilterMode
 import com.example.phocraft.enum.FlashState
 import com.example.phocraft.enum.TimerState
 import com.example.phocraft.model.CameraUiState
+import com.example.phocraft.ui.detail_photo.DetailPhotoActivity
+import com.example.phocraft.utils.BitmapCacheManager
+import com.example.phocraft.utils.CURRENT_PHOTO_KEY
 import com.example.phocraft.utils.FaceAnalyzer
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
@@ -215,11 +218,19 @@ class CameraActivity : AppCompatActivity() {
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         lifecycleScope.launch {
-                            viewModel.drawThenCropBitmap(image, window, state.cameraSize)
+                            val photo =
+                                viewModel.drawThenCropBitmap(image, window, state.cameraSize)
+                            BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
+                            BitmapCacheManager.addBitmapToMemoryCache(CURRENT_PHOTO_KEY, photo)
+                            startActivity(
+                                Intent(
+                                    this@CameraActivity,
+                                    DetailPhotoActivity::class.java
+                                )
+                            )
+                            viewModel.onCaptureFinished()
                         }
                     }
-                    viewModel.onCaptureFinished()
-
                 }
 
                 override fun onError(exception: ImageCaptureException) {
