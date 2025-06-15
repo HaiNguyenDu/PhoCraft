@@ -198,9 +198,6 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
 
         val crop = imageProxyToBitmapSinglePlane(window, bitmapToCrop, _uiState.value?.cameraSize!!)
 
-        viewModelScope.launch {
-            repository.saveImage(crop!!)
-        }
         return crop!!
     }
 

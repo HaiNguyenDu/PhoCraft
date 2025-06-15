@@ -10,6 +10,7 @@ import android.graphics.PorterDuffXfermode
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import com.example.phocraft.R
 
 class DrawView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
     private val undoStack = mutableListOf<Stroke>()
@@ -18,7 +19,7 @@ class DrawView(context: Context, attrs: AttributeSet? = null) : View(context, at
     var isDrawingEnabled: Boolean = false
 
     private val penPaint = Paint().apply {
-        color = Color.BLACK
+        color = context.getColor(R.color.white)
         isAntiAlias = true
         strokeWidth = 20f
         style = Paint.Style.STROKE
@@ -41,6 +42,7 @@ class DrawView(context: Context, attrs: AttributeSet? = null) : View(context, at
         setBackgroundColor(Color.TRANSPARENT)
     }
 
+    fun getPaintColor(): Int = penPaint.color
     fun setPenColor(newColor: Int) {
         penPaint.color = newColor
         currentPaint = penPaint

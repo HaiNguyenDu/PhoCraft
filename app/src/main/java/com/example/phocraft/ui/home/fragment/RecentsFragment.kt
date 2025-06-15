@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.phocraft.databinding.FragmentRecentsBinding
 import com.example.phocraft.enum.ImageCategory
-import com.example.phocraft.ui.editing.EditingActivity
+import com.example.phocraft.ui.detail_photo.DetailPhotoActivity
 import com.example.phocraft.ui.home.HomeViewModel
 import com.example.phocraft.ui.home.adapter.ImageAdapter
 import com.example.phocraft.utils.BitmapCacheManager
@@ -47,7 +47,7 @@ class RecentsFragment : Fragment() {
                 bitmapFromUri ?: return@ImageAdapter
                 BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
                 BitmapCacheManager.addBitmapToMemoryCache(CURRENT_PHOTO_KEY, bitmapFromUri)
-                startActivity(Intent(context, EditingActivity::class.java))
+                startActivity(Intent(context, DetailPhotoActivity::class.java))
             }
             layoutManager = GridLayoutManager(context, 3)
             adapter = imageAdapter

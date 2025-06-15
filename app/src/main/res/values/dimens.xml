@@ -38,4 +38,7 @@
     <dimen name="size_55">55dp</dimen>
     <dimen name="size_70">70dp</dimen>
     <dimen name="size_18">18dp</dimen>
+    <dimen name="size_2">2dp</dimen>
+    <dimen name="size_4">4dp</dimen>
+    <dimen name="font_10">10dp</dimen>
 </resources>

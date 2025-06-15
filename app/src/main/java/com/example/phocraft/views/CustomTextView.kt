@@ -11,8 +11,8 @@ import android.graphics.Paint
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.Typeface
-import android.graphics.fonts.Font
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -121,7 +121,16 @@ class CustomTextView(
         textView.typeface = typeface
         updateBitmapAndMatrix()
     }
+    fun setTextSizeInSp(sizeInSp: Float) {
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeInSp)
+        updateBitmapAndMatrix()
+    }
 
+    fun getTextSizeInSp(): Float {
+        return textView.textSize / resources.displayMetrics.scaledDensity
+    }
+
+    fun getStrokeColor(): Int = outlineColor
     var onDeleteListener: (() -> Unit)? = null
     var onFocusListener: ((CustomTextView) -> Unit)? = null
 
@@ -208,6 +217,7 @@ class CustomTextView(
 
     }
 
+    fun getTextColor(): Int = textView.currentTextColor
     private fun drawHandles(canvas: Canvas) {
         val bmp = textBitmap ?: return
 

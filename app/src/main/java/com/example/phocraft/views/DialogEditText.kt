@@ -26,7 +26,8 @@ object DialogEditText {
             setContentView(binding.root)
 
             setOnShowListener {
-                val bottomSheet = findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+                val bottomSheet =
+                    findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
                 if (bottomSheet != null) {
                     val layoutParams = bottomSheet.layoutParams
                     layoutParams.height = Resources.getSystem().displayMetrics.heightPixels
