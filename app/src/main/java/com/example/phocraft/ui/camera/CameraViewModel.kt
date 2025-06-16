@@ -11,7 +11,6 @@ import android.view.Window
 import androidx.annotation.RequiresApi
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageProxy
-import androidx.core.graphics.scale
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -23,7 +22,7 @@ import com.example.phocraft.enum.FlashState
 import com.example.phocraft.enum.TimerState
 import com.example.phocraft.model.CameraUiState
 import com.example.phocraft.utils.DrawFilterHelper
-import com.example.phocraft.utils.imageProxyToBitmapSinglePlane
+import com.example.phocraft.utils.cropImage
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
@@ -34,7 +33,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class CameraViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = ImageRepository(application)
     private val _uiState = MutableLiveData(CameraUiState())
     val uiState: LiveData<CameraUiState> = _uiState
 
@@ -147,7 +145,6 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
         val inputImage = InputImage.fromBitmap(correctedBitmap, 0)
         val faces = detector.process(inputImage).await()
 
-
         val bitmapToCrop =
             if (filterBitmap != null && filterMode != FilterMode.NONE && faces.isNotEmpty()) {
                 val face = faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() }
@@ -196,7 +193,7 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
                 correctedBitmap
             }
 
-        val crop = imageProxyToBitmapSinglePlane(window, bitmapToCrop, _uiState.value?.cameraSize!!)
+        val crop = cropImage(window, bitmapToCrop, _uiState.value?.cameraSize!!)
 
         return crop!!
     }

@@ -9,7 +9,7 @@ import com.example.phocraft.enum.CameraSize
 import kotlin.math.max
 
 @RequiresApi(Build.VERSION_CODES.R)
-fun imageProxyToBitmapSinglePlane(
+fun cropImage(
     window: Window,
     originalBitmap: Bitmap,
     cameraSize: CameraSize,
@@ -38,8 +38,10 @@ fun imageProxyToBitmapSinglePlane(
 
     val cropX = (centeringOffsetX / scale).toInt()
     val cropY = (finalTop / scale).toInt()
-    val cropWidth = (finalWidth / scale).toInt()
-    val cropHeight = (finalHeight / scale).toInt()
+    val cropWidth = ((finalWidth+30) / scale).toInt()
+
+    val cropHeight = if(cameraSize==CameraSize.SFull) ((finalHeight) / scale).toInt()
+    else ((finalHeight+100) / scale).toInt()
 
     val croppedBitmap = Bitmap.createBitmap(
         originalBitmap,

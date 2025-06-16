@@ -11,3 +11,4 @@ const val PREVIOUS_PHOTO_KEY = "previous_photo_key"
 const val CONVERT_PAINT_WIDTH = 3f / 5f
 const val FONT_ASSET_PATH = "fonts"
 const val SCALE_FACTOR = 0.5f
+const val FRAGMENT_KEY = "imageId"

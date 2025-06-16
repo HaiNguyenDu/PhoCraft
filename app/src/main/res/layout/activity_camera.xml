@@ -16,17 +16,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.example.phocraft.views.FaceOverlayView
+        android:id="@+id/face_overlay_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent" />
+
     <com.example.phocraft.views.FrameOverlayView
         android:id="@+id/overlayView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <com.example.phocraft.views.FaceOverlayView
-        android:id="@+id/face_overlay_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/transparent" />
 
     <ImageView
         android:id="@+id/btn_camera"
@@ -55,17 +56,22 @@
             android:src="@drawable/ic_swap" />
     </FrameLayout>
 
-    <ImageView
-        android:id="@+id/iv_recent"
-        android:layout_width="@dimen/size_50"
-        android:layout_height="@dimen/size_50"
+    <FrameLayout
+        android:id="@+id/btn_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/size_20"
-        android:background="@drawable/bg_image_recent"
-        android:scaleType="centerCrop"
-        android:src="@color/white"
+        android:background="@drawable/bg_btn_camera"
         app:layout_constraintBottom_toBottomOf="@+id/btn_camera"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/btn_camera" />
+        app:layout_constraintTop_toTopOf="@+id/btn_camera">
+
+        <ImageView
+            android:layout_width="@dimen/size_24"
+            android:layout_height="@dimen/size_24"
+            android:layout_margin="@dimen/size_10"
+            android:src="@drawable/ic_close" />
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/layout_btn"
@@ -191,6 +197,13 @@
                         android:layout_height="@dimen/size_50"
                         android:layout_marginEnd="@dimen/size_10"
                         android:src="@drawable/filter_rabbit_cheek" />
+
+                    <ImageView
+                        android:id="@+id/option_filter_unicorn"
+                        android:layout_width="@dimen/size_50"
+                        android:layout_height="@dimen/size_50"
+                        android:layout_marginEnd="@dimen/size_10"
+                        android:src="@drawable/filter_unicorn" />
                 </LinearLayout>
             </ScrollView>
         </LinearLayout>

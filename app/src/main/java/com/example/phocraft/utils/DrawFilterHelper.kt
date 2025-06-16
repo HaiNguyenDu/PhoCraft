@@ -35,7 +35,7 @@ object DrawFilterHelper {
         isFrontCamera: Boolean,
         filterBitmap: Bitmap,
     ) {
-        val filterWidth = boundingBox.width() * 1.2f
+        val filterWidth = 800
 
         val filterHeight = filterWidth * filterBitmap.height / filterBitmap.width
 
@@ -59,11 +59,10 @@ object DrawFilterHelper {
         filterBitmap: Bitmap,
     ) {
 
-
         val leftCheekPos = face.getLandmark(FaceLandmark.LEFT_CHEEK)?.position ?: return
         val rightCheekPos = face.getLandmark(FaceLandmark.RIGHT_CHEEK)?.position ?: return
 
-        val margin = boundingBox.width() * 0.15f
+        val margin = 30
         val leftCheekVector = floatArrayOf(leftCheekPos.x, leftCheekPos.y)
         val rightCheekVector = floatArrayOf(rightCheekPos.x, rightCheekPos.y)
 
@@ -72,7 +71,7 @@ object DrawFilterHelper {
         matrix.mapPoints(rightCheekVector)
 
 
-        val filterDisplayWidth = (boundingBox.width() * 0.2).toInt()
+        val filterDisplayWidth = 150
 
 
         val aspectRatio = filterBitmap.height.toFloat() / filterBitmap.width.toFloat()

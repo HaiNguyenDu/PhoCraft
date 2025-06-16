@@ -13,6 +13,7 @@ import com.example.phocraft.data.repositories.ColorRepository
 import com.example.phocraft.data.repositories.FilterRepository
 import com.example.phocraft.data.repositories.FontRepository
 import com.example.phocraft.data.repositories.FrameRepository
+import com.example.phocraft.data.repositories.ImageRepository
 import com.example.phocraft.data.repositories.StickerRepository
 import com.example.phocraft.enum.AdjustmentsState
 import com.example.phocraft.enum.EditingUiState
@@ -23,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class EditorViewModel(application: Application) : AndroidViewModel(application) {
+    private val imageRepository = ImageRepository(application)
     private val colorRepository = ColorRepository()
     private val stickerRepository = StickerRepository()
     private val fontRepository = FontRepository()
@@ -107,5 +109,9 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         } finally {
             _isLoading.value = false
         }
+    }
+
+    fun saveImageToGallery(bitmap: Bitmap): Uri? {
+        return imageRepository.saveImage(bitmap)
     }
 }

@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.icu.text.SimpleDateFormat
 import android.icu.util.TimeZone
+import android.net.Uri
 import android.provider.MediaStore
 import com.example.phocraft.enum.ImageCategory
 import com.example.phocraft.model.Image
@@ -16,38 +17,37 @@ import java.util.Locale
 
 class LocalData(private val context: Context) {
 
-    suspend fun saveImage(bitmap: Bitmap): Boolean {
-        return withContext(Dispatchers.IO) {
-            val vietnamTimeZone = TimeZone.getTimeZone("Asia/Ho_Chi_Minh")
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale("vi", "VN"))
-            dateFormat.timeZone = vietnamTimeZone
+    fun saveImage(bitmap: Bitmap): Uri? {
 
-            val currentTimeInVietnam = dateFormat.format(Date())
+        val vietnamTimeZone = TimeZone.getTimeZone("Asia/Ho_Chi_Minh")
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale("vi", "VN"))
+        dateFormat.timeZone = vietnamTimeZone
 
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, "image_${currentTimeInVietnam}.jpg")
-                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Images")
-                put(MediaStore.Images.Media.IS_PENDING, 1)
-            }
+        val currentTimeInVietnam = dateFormat.format(Date())
 
-            val resolver = context.contentResolver
-            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-            uri?.let {
-                try {
-                    resolver.openOutputStream(it)?.use { outputStream ->
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                        contentValues.clear()
-                        contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
-                        resolver.update(it, contentValues, null, null)
-                    }
-                } catch (e: Exception) {
-                    return@withContext false
-                }
-            }
-            return@withContext true
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "image_${currentTimeInVietnam}.jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Images")
+            put(MediaStore.Images.Media.IS_PENDING, 1)
         }
+
+        val resolver = context.contentResolver
+        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+        uri?.let {
+            try {
+                resolver.openOutputStream(it)?.use { outputStream ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    contentValues.clear()
+                    contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+                    resolver.update(it, contentValues, null, null)
+                }
+            } catch (e: Exception) {
+            }
+        }
+        return uri
+
     }
 
     suspend fun getImagesFromMediaStore(

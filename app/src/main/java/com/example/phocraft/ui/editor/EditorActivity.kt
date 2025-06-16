@@ -30,6 +30,7 @@ import com.example.phocraft.ui.editor.adapter.FilterAdapter
 import com.example.phocraft.ui.editor.adapter.FontAdapter
 import com.example.phocraft.ui.editor.adapter.StickerAdapter
 import com.example.phocraft.ui.home.HomeActivity
+import com.example.phocraft.ui.save_screen.SaveActivity
 import com.example.phocraft.utils.BitmapCacheManager
 import com.example.phocraft.utils.CONVERT_PAINT_WIDTH
 import com.example.phocraft.utils.CURRENT_PHOTO_KEY
@@ -459,6 +460,17 @@ class EditorActivity : AppCompatActivity() {
                 }
                 viewModel.setUiState(EditingUiState.MAIN)
 
+            }
+            btnSave.setOnClickListener {
+                val bitmap = imageEditorView.getBitmap()
+                val uri = viewModel.saveImageToGallery(bitmap)
+                if (uri == null) {
+                    return@setOnClickListener
+                } else {
+                    startActivity(Intent(this@EditorActivity, SaveActivity::class.java).apply {
+                        putExtra("Uri", uri.toString())
+                    })
+                }
             }
             btnSticker.setOnClickListener { viewModel.setUiState(EditingUiState.STICKER) }
             btnCrop.setOnClickListener { viewModel.setUiState(EditingUiState.CROP) }

@@ -154,7 +154,7 @@ class CameraActivity : AppCompatActivity() {
         binding.btnSize.setOnClickListener { toggleSizeControlsVisibility() }
         binding.btnTimer.setOnClickListener { toggleTimerControlsVisibility() }
         binding.btnFilter.setOnClickListener { toggleFilterControlsVisibility() }
-
+        binding.btnClose.setOnClickListener { finish() }
         setupSizeOptionClickListeners()
         setupTimerOptionClickListeners()
         setUpFilterOptionsClick()
@@ -259,6 +259,13 @@ class CameraActivity : AppCompatActivity() {
                 viewModel.onFilterSelected(FilterMode.NONE, null)
                 selectFilterMode(it)
             }
+
+//            optionFilterUnicorn.setOnClickListener {
+//                val bitmap =
+//                    BitmapFactory.decodeResource(resources, R.drawable.filter_unicorn)
+//                viewModel.onFilterSelected(FilterMode.HEAD, bitmap)
+//                selectFilterMode(it)
+//            }
         }
     }
 
@@ -281,13 +288,18 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun toggleMainControlsGroupVisibility() {
-        val layout = binding.layoutBtn
-        val isExpanding = layout.isGone
+        val isExpanding = binding.layoutBtn.isGone
+
+        Glide.with(this).load(
+            if (isExpanding) R.drawable.ic_arrow_up
+            else R.drawable.ic_arrow_down
+        ).into(binding.icBtnArrow)
+
         val animationRes =
             if (isExpanding) R.anim.slide_bottom_to_top else R.anim.slide_top_to_bottom
         val animation = AnimationUtils.loadAnimation(this, animationRes)
-        layout.startAnimation(animation)
-        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        binding.layoutBtn.startAnimation(animation)
+        binding.layoutBtn.visibility = if (isExpanding) View.VISIBLE else View.GONE
     }
 
     private fun selectFilterMode(view: View) {

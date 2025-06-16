@@ -17,6 +17,6 @@ data class CameraUiState(
     val filterBitmap: Bitmap? = null,
     val countdownValue: Int? = null,
     val isTakingPicture: Boolean = false,
-    val showMainControls: Boolean = true,
+    val showMainControls: Boolean = false,
     val brightness: Int? = null,
 )
