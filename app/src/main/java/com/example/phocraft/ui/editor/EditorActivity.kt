@@ -79,7 +79,7 @@ class EditorActivity : AppCompatActivity() {
         val currentPhoto = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
 
         if (currentPhoto == null) {
-            Toast.makeText(this, "Không thể tải ảnh", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Cannot load Image", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -432,7 +432,10 @@ class EditorActivity : AppCompatActivity() {
                 ConfirmDialog.show(this@EditorActivity) {
                     imageEditorView.clearAllLayers()
                     val image = BitmapCacheManager.getBitmapFromMemCache(PREVIOUS_PHOTO_KEY)
-                    imageEditorView.setImageBitmap(image!!)
+                    BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
+                    if (image == null) return@show
+                    BitmapCacheManager.addBitmapToMemoryCache(CURRENT_PHOTO_KEY, image)
+                    imageEditorView.setImageBitmap(image)
                 }
             }
             btnSaveCircle.setOnClickListener {

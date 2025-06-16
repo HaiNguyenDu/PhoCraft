@@ -31,7 +31,7 @@ fun cropImage(
     val finalTop = size[1]
 
     val scaleX = screenWidth.toFloat() / originalWidth
-    val scaleY = (finalTop + screenHeight.toFloat()) / originalHeight
+    val scaleY = (screenHeight.toFloat()) / originalHeight
     val scale = max(scaleX, scaleY)
 
     val centeringOffsetX = (originalWidth * scale - screenWidth) / 2f

@@ -251,7 +251,6 @@ class CustomTextView(
             topLeftY + handleSize / 2
         )
 
-
         canvas.drawBitmap(
             resizeHandleBitmap,
             bottomRightX - resizeHandleBitmap.width / 2,
@@ -274,7 +273,6 @@ class CustomTextView(
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-
                 when {
                     deleteHandleRect.contains(event.x, event.y) -> {
                         onDeleteListener?.invoke()

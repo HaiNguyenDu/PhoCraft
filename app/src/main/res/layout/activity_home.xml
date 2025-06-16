@@ -15,7 +15,7 @@
         android:fontFamily="@font/quicksand_bold"
         android:text="You do not have permission"
         android:textColor="@color/black"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,9 +26,9 @@
         android:layout_width="@dimen/size_150"
         android:layout_height="@dimen/size_50"
         android:layout_marginTop="@dimen/size_20"
+        android:visibility="visible"
         app:cardCornerRadius="@dimen/size_20"
         app:layout_constraintEnd_toEndOf="parent"
-        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_ps">
 

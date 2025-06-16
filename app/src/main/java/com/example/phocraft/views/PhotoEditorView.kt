@@ -7,7 +7,6 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
-import android.view.MotionEvent
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.graphics.createBitmap
@@ -101,13 +100,6 @@ class PhotoEditorView(
         imageView.setImageBitmap(bitmapFilter)
     }
 
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (isDrawingMode || isFrameMode) {
-            return false
-        }
-        return super.onInterceptTouchEvent(ev)
-    }
-
     fun getBitmap(): Bitmap {
         val drawable = imageView.drawable
         val originalImageWidth = drawable.intrinsicWidth
@@ -174,12 +166,7 @@ class PhotoEditorView(
         }
     }
 
-    //    fun getColorPain(): Color = drawView.getC
-
-    fun getPenColor(): Int? {
-        return drawView.getPaintColor()
-    }
-
+    fun getPenColor(): Int? = drawView.getPaintColor()
     fun getTextColor(): Int? = focusedText?.getTextColor()
     fun getStrokeColor(): Int? = focusedText?.getStrokeColor()
     fun setPenColor(newColor: Int) = drawView.setPenColor(newColor)

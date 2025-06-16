@@ -33,10 +33,8 @@ class HomeActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             when {
                 granted -> {
-                    if (granted) {
-                        binding.tvPs.visibility = View.GONE
-                        binding.btnRequest.visibility = View.GONE
-                    }
+                    binding.tvPs.visibility = View.GONE
+                    binding.btnRequest.visibility = View.GONE
                     setUpUi()
                 }
 
@@ -55,8 +53,6 @@ class HomeActivity : AppCompatActivity() {
                         this, packageName, getString(R.string.lb_can_not_work_properly),
                         getString(R.string.necessary_permission)
                     )
-                    binding.tvPs.visibility = View.VISIBLE
-                    binding.btnRequest.visibility = View.VISIBLE
                 }
             }
         }

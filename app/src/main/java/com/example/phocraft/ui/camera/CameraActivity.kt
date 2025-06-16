@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
@@ -176,7 +175,8 @@ class CameraActivity : AppCompatActivity() {
             it.setSurfaceProvider(binding.previewView.surfaceProvider)
         }
 
-        imageCapture = ImageCapture.Builder().build()
+        imageCapture = ImageCapture.Builder()
+            .build()
 
 
         val isFront = state.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
@@ -203,7 +203,6 @@ class CameraActivity : AppCompatActivity() {
             renderUi(state)
             setupBrightnessControls()
         } catch (exc: Exception) {
-            Log.e("CameraX", "Use case binding failed", exc)
         }
     }
 
@@ -259,7 +258,6 @@ class CameraActivity : AppCompatActivity() {
                 viewModel.onFilterSelected(FilterMode.NONE, null)
                 selectFilterMode(it)
             }
-
 //            optionFilterUnicorn.setOnClickListener {
 //                val bitmap =
 //                    BitmapFactory.decodeResource(resources, R.drawable.filter_unicorn)

@@ -41,6 +41,7 @@ object DialogEditText {
 
             binding.apply {
                 edt.setText(currentText)
+                edt.setSelection(currentText.length)
                 btnSave.setOnClickListener {
                     val text = edt.text.toString()
                     customTextView.setText(text)
