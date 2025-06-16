@@ -15,7 +15,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.phocraft.data.repositories.ImageRepository
 import com.example.phocraft.enum.CameraSize
 import com.example.phocraft.enum.FilterMode
 import com.example.phocraft.enum.FlashState
@@ -132,7 +131,6 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
             originalBitmap, 0, 0, originalBitmap.width, originalBitmap.height, matrix, true
         )
 
-
         val uiState = _uiState.value ?: return correctedBitmap
         val filterBitmap = uiState.filterBitmap
         val filterMode = uiState.filterMode
@@ -156,33 +154,16 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
                     val canvas = Canvas(resultBitmapWithFilter)
                     val isFront = uiState.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
 
-                    val matrix = Matrix()
-                    if (isFront) {
-                        matrix.postScale(
-                            -1f,
-                            1f,
-                            correctedBitmap.width / 2f,
-                            correctedBitmap.height / 2f
-                        )
-                    }
-
-                    matrix.mapRect(boundingBox)
-
                     if (filterMode == FilterMode.HEAD) {
                         DrawFilterHelper.drawHeadFilter(
-                            face,
                             canvas,
                             boundingBox,
-                            matrix,
-                            isFront,
                             filterBitmap
                         )
                     } else if (filterMode == FilterMode.CHEEK) {
-                        DrawFilterHelper.drawCheekFilter(
+                        DrawFilterHelper.drawCheekFilterResult(
                             face,
                             canvas,
-                            boundingBox,
-                            matrix,
                             isFront,
                             filterBitmap
                         )

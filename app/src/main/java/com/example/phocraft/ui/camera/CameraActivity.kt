@@ -72,7 +72,6 @@ class CameraActivity : AppCompatActivity() {
                     )
         }
 
-        cameraExecutor = Executors.newSingleThreadExecutor()
         startCamera()
         setupClickListeners()
         observeViewModel()
@@ -160,6 +159,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun startCamera() {
+        cameraExecutor = Executors.newSingleThreadExecutor()
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             this.cameraProvider = cameraProviderFuture.get()
@@ -287,12 +287,10 @@ class CameraActivity : AppCompatActivity() {
 
     private fun toggleMainControlsGroupVisibility() {
         val isExpanding = binding.layoutBtn.isGone
-
         Glide.with(this).load(
             if (isExpanding) R.drawable.ic_arrow_up
             else R.drawable.ic_arrow_down
         ).into(binding.icBtnArrow)
-
         val animationRes =
             if (isExpanding) R.anim.slide_bottom_to_top else R.anim.slide_top_to_bottom
         val animation = AnimationUtils.loadAnimation(this, animationRes)
@@ -342,12 +340,11 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun toggleTimerControlsVisibility() {
-        val layout = binding.layoutTimer
-        val isExpanding = layout.visibility != View.VISIBLE
+        val isExpanding = binding.layoutTimer.visibility != View.VISIBLE
         TransitionManager.beginDelayedTransition(
             binding.layoutBtn,
             AutoTransition().apply { duration = 200 })
-        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        binding.layoutTimer.visibility = if (isExpanding) View.VISIBLE else View.GONE
         setOtherButtonsVisibility(
             binding.layoutBtn,
             listOf(binding.layoutBtnTimer),
@@ -371,12 +368,12 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun toggleSizeControlsVisibility() {
-        val layout = binding.layoutSize
-        val isExpanding = layout.visibility != View.VISIBLE
+        binding.layoutSize
+        val isExpanding = binding.layoutSize.visibility != View.VISIBLE
         TransitionManager.beginDelayedTransition(
             binding.layoutBtn,
             AutoTransition().apply { duration = 200 })
-        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        binding.layoutSize.visibility = if (isExpanding) View.VISIBLE else View.GONE
         setOtherButtonsVisibility(
             binding.layoutBtn,
             listOf(binding.layoutBtnSize),
@@ -385,12 +382,11 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun toggleBrightnessControlsVisibility() {
-        val layout = binding.layoutSeekBar
-        val isExpanding = layout.visibility != View.VISIBLE
+        val isExpanding =  binding.layoutSeekBar.visibility != View.VISIBLE
         TransitionManager.beginDelayedTransition(
             binding.layoutBtn,
             AutoTransition().apply { duration = 200 })
-        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        binding.layoutSeekBar.visibility = if (isExpanding) View.VISIBLE else View.GONE
         setOtherButtonsVisibility(
             binding.layoutBtn,
             listOf(binding.btnLightLayout),

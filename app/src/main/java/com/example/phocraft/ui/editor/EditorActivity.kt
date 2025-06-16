@@ -25,6 +25,7 @@ import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityEditorBinding
 import com.example.phocraft.enum.AdjustmentsState
 import com.example.phocraft.enum.EditingUiState
+import com.example.phocraft.enum.FilterType
 import com.example.phocraft.ui.editor.adapter.ColorAdapter
 import com.example.phocraft.ui.editor.adapter.FilterAdapter
 import com.example.phocraft.ui.editor.adapter.FontAdapter
@@ -374,6 +375,8 @@ class EditorActivity : AppCompatActivity() {
             btnRestore.visibility = View.GONE
             rcvFilter.fadeIn()
         }
+        binding.imageEditorView.setFilterMode(true)
+        filterAdapter.setCurrentFilter(FilterType.NONE)
     }
 
     private fun setFocusBtnAdjustments(view: View? = null) {
@@ -665,7 +668,7 @@ class EditorActivity : AppCompatActivity() {
                     originalCropHeight = originalBitmap.height - originalCropY
                 }
 
-                val croppedHighQualityBitmap = Bitmap.createBitmap(
+                val croppedBitmap = Bitmap.createBitmap(
                     originalBitmap,
                     originalCropX,
                     originalCropY,
@@ -685,10 +688,11 @@ class EditorActivity : AppCompatActivity() {
                 BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
                 BitmapCacheManager.addBitmapToMemoryCache(CURRENT_PHOTO_KEY, bitmapDraw)
                 binding.imageEditorView.clearAllLayers()
-                binding.imageEditorView.setImageBitmap(croppedHighQualityBitmap)
+                binding.imageEditorView.setImageBitmap(croppedBitmap)
 
             } else {
-                Toast.makeText(this, "Lỗi khi cắt ảnh", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_when_crroped_photo), Toast.LENGTH_SHORT).show()
+                onMainState()
             }
         }
 
