@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".ui.camera.CameraActivity">
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.example.phocraft.views.FaceOverlayView
+        android:id="@+id/face_overlay_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent" />
+
+    <com.example.phocraft.views.FrameOverlayView
+        android:id="@+id/overlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+
+    <ImageView
+        android:id="@+id/btn_camera"
+        android:layout_width="@dimen/size_72"
+        android:layout_height="@dimen/size_72"
+        android:layout_marginBottom="@dimen/size_100"
+        android:src="@drawable/ic_rounded_white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/btn_swap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/size_20"
+        android:background="@drawable/bg_btn_camera"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_camera"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_camera">
+
+        <ImageView
+            android:layout_width="@dimen/size_30"
+            android:layout_height="@dimen/size_30"
+            android:layout_margin="@dimen/size_10"
+            android:src="@drawable/ic_swap" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/btn_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/size_20"
+        android:background="@drawable/bg_btn_camera"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_camera"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_camera">
+
+        <ImageView
+            android:layout_width="@dimen/size_24"
+            android:layout_height="@dimen/size_24"
+            android:layout_margin="@dimen/size_10"
+            android:src="@drawable/ic_close" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_btn"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/size_50"
+        android:layout_marginHorizontal="@dimen/size_20"
+        android:layout_marginBottom="@dimen/size_25"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/btn_camera"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:id="@+id/btn_light_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera"
+            android:minWidth="@dimen/size_50"
+            android:visibility="visible">
+
+            <FrameLayout
+
+                android:id="@+id/btn_light"
+                android:layout_width="@dimen/size_50"
+                android:layout_height="@dimen/size_50"
+                android:background="@drawable/bg_btn_camera">
+
+                <ImageView
+                    android:layout_width="@dimen/size_26"
+                    android:layout_height="@dimen/size_28"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_plus_minus" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_seek_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tv_light"
+                    android:layout_width="@dimen/size_25"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="@dimen/size_20"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:textColor="@color/yellow"
+                    android:textSize="@dimen/font_14" />
+
+                <SeekBar
+                    android:id="@+id/seekBar"
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:max="100"
+                    android:padding="@dimen/size_0"
+                    android:progress="50"
+                    android:progressDrawable="@drawable/seekbar_progress"
+                    android:thumb="@drawable/seekbar_custom_thumb"
+                    android:visibility="visible" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_btn_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:minWidth="@dimen/size_50">
+
+            <FrameLayout
+                android:id="@+id/btn_filter"
+                android:layout_width="@dimen/size_50"
+                android:layout_height="@dimen/size_50"
+                android:background="@drawable/bg_btn_camera">
+
+                <ImageView
+                    android:layout_width="@dimen/size_24"
+                    android:layout_height="@dimen/size_20"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_filter" />
+            </FrameLayout>
+
+            <ScrollView
+                android:id="@+id/scroll_layout_filter"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/layout_filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/size_50"
+                    android:layout_marginLeft="@dimen/size_30"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/option_filter_none"
+                        android:layout_width="@dimen/size_50"
+                        android:layout_height="@dimen/size_50"
+                        android:layout_marginEnd="@dimen/size_10"
+                        android:fontFamily="@font/quicksand_bold"
+                        android:gravity="center"
+                        android:text="None"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/font_16" />
+
+                    <ImageView
+                        android:id="@+id/option_filter_head_rabbit"
+                        android:layout_width="@dimen/size_50"
+                        android:layout_height="@dimen/size_50"
+                        android:layout_marginEnd="@dimen/size_10"
+                        android:src="@drawable/filter_rabbit" />
+
+                    <ImageView
+                        android:id="@+id/option_filter_cheek_rabbit"
+                        android:layout_width="@dimen/size_50"
+                        android:layout_height="@dimen/size_50"
+                        android:layout_marginEnd="@dimen/size_10"
+                        android:src="@drawable/filter_rabbit_cheek" />
+
+                    <ImageView
+                        android:id="@+id/option_filter_unicorn"
+                        android:layout_width="@dimen/size_50"
+                        android:layout_height="@dimen/size_50"
+                        android:layout_marginEnd="@dimen/size_10"
+                        android:src="@drawable/filter_unicorn" />
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_btn_size"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/size_50"
+            android:layout_gravity="center_vertical"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera"
+            android:minWidth="@dimen/size_50"
+            android:orientation="horizontal"
+            android:visibility="visible">
+
+            <FrameLayout
+                android:id="@+id/btn_size"
+                android:layout_width="@dimen/size_50"
+                android:layout_height="@dimen/size_50"
+                android:background="@drawable/bg_btn_camera">
+
+                <TextView
+                    android:id="@+id/text_current_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:text="4:3"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_size"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/option_1_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/size_30"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:gravity="center"
+                    android:text="@string/_1_1"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+
+                <TextView
+                    android:id="@+id/option_4_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/size_30"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:gravity="center"
+                    android:text="@string/_4_3"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+
+                <TextView
+                    android:id="@+id/option_16_9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/size_30"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:gravity="center"
+                    android:text="@string/_16_9"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+
+                <TextView
+                    android:id="@+id/option_full"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/size_30"
+                    android:layout_marginEnd="@dimen/size_30"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:gravity="center"
+                    android:text="@string/full"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/btn_grid"
+            android:layout_width="@dimen/size_50"
+            android:layout_height="@dimen/size_50"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera"
+            android:visibility="visible">
+
+            <ImageView
+                android:id="@+id/tv_grid"
+                android:layout_width="@dimen/size_27"
+                android:layout_height="@dimen/size_28"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_grid_on" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_btn_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/size_50"
+            android:layout_marginHorizontal="@dimen/size_10"
+            android:background="@drawable/bg_btn_camera"
+            android:visibility="visible">
+
+            <FrameLayout
+                android:id="@+id/btn_timer"
+                android:layout_width="@dimen/size_50"
+                android:layout_height="@dimen/size_50"
+                android:background="@drawable/bg_btn_camera">
+
+                <ImageView
+                    android:id="@+id/ic_btn_timer"
+                    android:layout_width="@dimen/size_27"
+                    android:layout_height="@dimen/size_27"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_clock_off" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_timer"
+                android:layout_width="@dimen/size_200"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/option_off"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/size_10"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:text="off"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+
+                <TextView
+                    android:id="@+id/option_T_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/size_10"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:text="3"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+
+                <TextView
+                    android:id="@+id/option_T_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/size_10"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:text="5"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+
+                <TextView
+                    android:id="@+id/option_T_10"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/size_10"
+                    android:fontFamily="@font/quicksand_bold"
+                    android:text="10"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/font_16" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/btn_arrow"
+        android:layout_width="@dimen/size_28"
+        android:layout_height="@dimen/size_28"
+        android:layout_marginTop="@dimen/size_40"
+        android:background="@drawable/bg_btn_camera"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ic_btn_arrow"
+            android:layout_width="@dimen/size_20"
+            android:layout_height="@dimen/size_20"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_arrow_down" />
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/btn_flash"
+        android:layout_width="@dimen/size_25"
+        android:layout_height="@dimen/size_25"
+        android:layout_marginStart="@dimen/size_20"
+        android:layout_marginTop="@dimen/size_40"
+        android:src="@drawable/ic_flash_off"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
