@@ -127,9 +127,6 @@ class EditorActivity : AppCompatActivity() {
         filterAdapter = FilterAdapter(
             viewModel.filters.value!!
         ) { filter ->
-            binding.rcvFilter.children.forEach {
-
-            }
             viewModel.viewModelScope.launch {
                 viewModel.runWithLoading {
                     binding.imageEditorView.setFilter(filter)
@@ -364,8 +361,6 @@ class EditorActivity : AppCompatActivity() {
     }
 
     private fun onFilterState() {
-        val currentFilterType = binding.imageEditorView.getFilterType()
-        filterAdapter.setCurrentFilter(currentFilterType)
         setOtherButtonsVisibility(
             binding.layoutBtn, listOf(), View.GONE
         )
@@ -691,7 +686,11 @@ class EditorActivity : AppCompatActivity() {
                 binding.imageEditorView.setImageBitmap(croppedBitmap)
 
             } else {
-                Toast.makeText(this, getString(R.string.error_when_crroped_photo), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    getString(R.string.error_when_crroped_photo),
+                    Toast.LENGTH_SHORT
+                ).show()
                 onMainState()
             }
         }

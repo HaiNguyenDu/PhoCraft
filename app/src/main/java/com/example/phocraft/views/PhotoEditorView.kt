@@ -171,7 +171,7 @@ class PhotoEditorView(
     fun undo() = drawView.undo()
     fun redo() = drawView.redo()
     fun clearCanvas() = drawView.clearCanvas()
-    fun getFilterType(): FilterType? = previousFilterType
+//    fun getFilterType(): FilterType? = previousFilterType
     fun setImageBitmap(bitmap: Bitmap) {
         originalBitmap = bitmap
         if (previousFrame != null)
@@ -252,13 +252,11 @@ class PhotoEditorView(
     }
 
     fun saveFilter() {
-        previousFilterType = currentFilterType
         currentFilterType = null
         originalBitmap = imageView.drawable.toBitmap()
     }
 
     fun exitFilter() {
-        imageView.setImageBitmap(originalBitmap)
         currentFilterType = null
         isFilterMode = false
     }
