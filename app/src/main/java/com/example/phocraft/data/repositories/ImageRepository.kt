@@ -2,6 +2,7 @@ package com.example.phocraft.data.repositories
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import com.example.phocraft.data.local.LocalData
 import com.example.phocraft.enum.ImageCategory
 import com.example.phocraft.model.Image
@@ -14,7 +15,7 @@ class ImageRepository(private val context: Context) {
         return localData.getImagesFromMediaStore(context, category)
     }
 
-    suspend fun saveImage(bitmap: Bitmap): Boolean {
+    fun saveImage(bitmap: Bitmap): Uri? {
 
         return localData.saveImage(bitmap)
     }

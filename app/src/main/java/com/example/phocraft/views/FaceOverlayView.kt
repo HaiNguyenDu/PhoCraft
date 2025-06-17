@@ -53,24 +53,18 @@ class FaceOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         )
         val face = faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() }
         if (face == null) return
-
         val boundingBox = RectF(face.boundingBox)
         matrix.mapRect(boundingBox)
-
         if (filterMode == FilterMode.HEAD) {
             DrawFilterHelper.drawHeadFilter(
-                face,
                 canvas,
                 boundingBox,
-                matrix,
-                isFrontCamera,
                 filterBitmap!!
             )
         } else if (filterMode == FilterMode.CHEEK) {
             DrawFilterHelper.drawCheekFilter(
                 face,
                 canvas,
-                boundingBox,
                 matrix,
                 isFrontCamera,
                 filterBitmap!!

@@ -28,4 +28,5 @@
     <color name="glass_white">#80000000</color>
     <color name="black_opacity_0.6">#CC000000</color>
     <color name="none">#00000000</color>
+    <color name="white_opacity_0.3">#CC000000</color>
 </resources>

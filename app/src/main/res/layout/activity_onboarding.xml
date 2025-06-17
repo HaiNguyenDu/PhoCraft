@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.onboarding.OnboardingActivity">
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout_indicator"
+        android:layout_width="@dimen/size_150"
+        android:layout_height="@dimen/size_16"
+        android:layout_marginBottom="@dimen/size_30"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toTopOf="@id/btn_get_start"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:tabBackground="@drawable/dot_indicator_selector"
+        app:tabGravity="center"
+        app:tabMode="fixed"
+        app:tabIndicatorHeight="0dp" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/btn_get_start"
+        android:layout_width="@dimen/size_180"
+        android:layout_height="@dimen/size_50"
+        android:layout_marginBottom="@dimen/size_50"
+        app:cardCornerRadius="@dimen/size_20"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/quicksand_bold"
+            android:text="Get Started"
+            android:textColor="@color/black"
+            android:textSize="@dimen/font_14" />
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

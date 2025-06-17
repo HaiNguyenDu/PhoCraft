@@ -28,14 +28,11 @@ object DrawFilterHelper {
     }
 
     fun drawHeadFilter(
-        face: Face,
         canvas: Canvas,
         boundingBox: RectF,
-        matrix: Matrix,
-        isFrontCamera: Boolean,
         filterBitmap: Bitmap,
     ) {
-        val filterWidth = boundingBox.width() * 1.2f
+        val filterWidth = 800
 
         val filterHeight = filterWidth * filterBitmap.height / filterBitmap.width
 
@@ -43,36 +40,82 @@ object DrawFilterHelper {
 
         val filterY = boundingBox.top - filterHeight
 
-
         val destinationRect =
             RectF(filterX, filterY, filterX + filterWidth, filterY + filterHeight)
 
         canvas.drawBitmap(filterBitmap, null, destinationRect, null)
     }
 
+    fun drawCheekFilterResult(
+        face: Face,
+        canvas: Canvas,
+        isFrontCamera: Boolean,
+        filterBitmap: Bitmap,
+    ) {
+
+        val leftCheekPos = face.getLandmark(FaceLandmark.LEFT_CHEEK)?.position ?: return
+        val rightCheekPos = face.getLandmark(FaceLandmark.RIGHT_CHEEK)?.position ?: return
+
+        val margin = 30
+        val leftCheekVector = floatArrayOf(leftCheekPos.x, leftCheekPos.y)
+        val rightCheekVector = floatArrayOf(rightCheekPos.x, rightCheekPos.y)
+
+        val filterDisplayWidth = 150
+
+        val aspectRatio = filterBitmap.height.toFloat() / filterBitmap.width.toFloat()
+        val filterDisplayHeight = filterDisplayWidth * aspectRatio
+
+
+        val leftCheekX = if (isFrontCamera) {
+            leftCheekVector[0] + margin
+        } else {
+            leftCheekVector[0] - margin
+        }
+        val leftCheekY = leftCheekVector[1]
+        val rectLeft = RectF(
+            leftCheekX - filterDisplayWidth / 2,
+            leftCheekY - filterDisplayHeight / 2,
+            leftCheekX + filterDisplayWidth / 2,
+            leftCheekY + filterDisplayHeight / 2
+        )
+        canvas.drawBitmap(filterBitmap, null, rectLeft, null)
+
+        val rightCheekX = if (isFrontCamera) {
+            rightCheekVector[0] - margin
+        } else {
+            rightCheekVector[0] + margin
+        }
+        val rightCheekY = rightCheekVector[1]
+
+        val rectRight = RectF(
+            rightCheekX - filterDisplayWidth / 2,
+            rightCheekY - filterDisplayHeight / 2,
+            rightCheekX + filterDisplayWidth / 2,
+            rightCheekY + filterDisplayHeight / 2
+        )
+        canvas.drawBitmap(filterBitmap, null, rectRight, null)
+    }
+
     fun drawCheekFilter(
         face: Face,
         canvas: Canvas,
-        boundingBox: RectF,
         matrix: Matrix,
         isFrontCamera: Boolean,
         filterBitmap: Bitmap,
     ) {
 
-
         val leftCheekPos = face.getLandmark(FaceLandmark.LEFT_CHEEK)?.position ?: return
         val rightCheekPos = face.getLandmark(FaceLandmark.RIGHT_CHEEK)?.position ?: return
 
-        val margin = boundingBox.width() * 0.15f
+        val margin = 30
         val leftCheekVector = floatArrayOf(leftCheekPos.x, leftCheekPos.y)
         val rightCheekVector = floatArrayOf(rightCheekPos.x, rightCheekPos.y)
-
 
         matrix.mapPoints(leftCheekVector)
         matrix.mapPoints(rightCheekVector)
 
 
-        val filterDisplayWidth = (boundingBox.width() * 0.2).toInt()
+        val filterDisplayWidth = 150
 
 
         val aspectRatio = filterBitmap.height.toFloat() / filterBitmap.width.toFloat()
@@ -94,7 +137,6 @@ object DrawFilterHelper {
         )
         canvas.drawBitmap(filterBitmap, null, rectLeft, null)
 
-
         val rightCheekX = if (isFrontCamera) {
             rightCheekVector[0] - margin
         } else {
@@ -110,4 +152,5 @@ object DrawFilterHelper {
         )
         canvas.drawBitmap(filterBitmap, null, rectRight, null)
     }
+
 }

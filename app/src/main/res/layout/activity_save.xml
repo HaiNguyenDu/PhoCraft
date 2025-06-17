@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.save_screen.SaveActivity">
+
+
+    <ImageView
+        android:id="@+id/iv"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/size_400"
+        android:scaleType="centerCrop"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/size_400"
+        android:background="@color/white_opacity_0.3"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_small"
+        android:layout_width="@dimen/size_150"
+        android:layout_height="@dimen/size_150"
+        android:layout_marginStart="@dimen/size_20"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="@+id/iv"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/btn_home"
+        android:layout_width="@dimen/size_30"
+        android:layout_height="@dimen/size_30"
+        android:layout_marginTop="@dimen/size_30"
+        android:layout_marginEnd="@dimen/size_20"
+        android:src="@drawable/ic_home"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <androidx.cardview.widget.CardView
+        android:id="@+id/btn_continue"
+        android:layout_width="@dimen/size_180"
+        android:layout_height="@dimen/size_50"
+        android:layout_marginEnd="@dimen/size_20"
+        android:backgroundTint="@color/white"
+        android:elevation="@dimen/size_10"
+        app:cardCornerRadius="@dimen/size_20"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/iv_small">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/quicksand_bold"
+            android:text="Continue editing"
+            android:textColor="@color/black"
+            android:textSize="@dimen/font_12" />
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/btn_share"
+        android:layout_width="@dimen/size_180"
+        android:layout_height="@dimen/size_50"
+        android:layout_marginEnd="@dimen/size_20"
+        android:backgroundTint="@color/white"
+        app:cardCornerRadius="@dimen/size_20"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_small"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/quicksand_bold"
+            android:text="Share"
+            android:textColor="@color/black"
+            android:textSize="@dimen/font_12" />
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

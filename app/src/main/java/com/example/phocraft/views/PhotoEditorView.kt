@@ -7,7 +7,6 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
-import android.view.MotionEvent
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.graphics.createBitmap
@@ -19,8 +18,6 @@ import androidx.core.view.children
 import com.example.phocraft.enum.FilterType
 import com.example.phocraft.model.FilterItem
 import com.example.phocraft.model.PhotoAdjustments
-import com.example.phocraft.utils.BitmapCacheManager
-import com.example.phocraft.utils.CURRENT_PHOTO_KEY
 import com.example.phocraft.utils.ColorFilterManager
 import com.example.phocraft.utils.FilterManager
 
@@ -95,17 +92,8 @@ class PhotoEditorView(
 
     fun setFilter(filterItem: FilterItem) {
         currentFilterType = filterItem.type
-        val bitmap = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
-        val bitmapFilter = FilterManager.applyFilter(bitmap!!, filterItem.type)
-        originalBitmap = bitmapFilter
+        val bitmapFilter = FilterManager.applyFilter(originalBitmap!!, filterItem.type)
         imageView.setImageBitmap(bitmapFilter)
-    }
-
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (isDrawingMode || isFrameMode) {
-            return false
-        }
-        return super.onInterceptTouchEvent(ev)
     }
 
     fun getBitmap(): Bitmap {
@@ -174,12 +162,7 @@ class PhotoEditorView(
         }
     }
 
-    //    fun getColorPain(): Color = drawView.getC
-
-    fun getPenColor(): Int? {
-        return drawView.getPaintColor()
-    }
-
+    fun getPenColor(): Int? = drawView.getPaintColor()
     fun getTextColor(): Int? = focusedText?.getTextColor()
     fun getStrokeColor(): Int? = focusedText?.getStrokeColor()
     fun setPenColor(newColor: Int) = drawView.setPenColor(newColor)
@@ -188,7 +171,7 @@ class PhotoEditorView(
     fun undo() = drawView.undo()
     fun redo() = drawView.redo()
     fun clearCanvas() = drawView.clearCanvas()
-    fun getFilterType(): FilterType? = previousFilterType
+//    fun getFilterType(): FilterType? = previousFilterType
     fun setImageBitmap(bitmap: Bitmap) {
         originalBitmap = bitmap
         if (previousFrame != null)
@@ -249,16 +232,15 @@ class PhotoEditorView(
 
     fun saveAdjustments() {
         previousAdjustments = photoAdjustments.copy()
-        val bitmap = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
+
         val adjustedBitmap = ColorFilterManager.applyAdjustments(
-            originalBitmap = bitmap!!,
+            originalBitmap = originalBitmap!!,
             brightness = photoAdjustments.brightness,
             contrast = photoAdjustments.contrast,
             saturation = photoAdjustments.saturation,
             hue = photoAdjustments.hue
         )
-        BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
-        BitmapCacheManager.addBitmapToMemoryCache(CURRENT_PHOTO_KEY, adjustedBitmap)
+        originalBitmap = adjustedBitmap
     }
 
     fun setDrawingMode(isEnabled: Boolean) {
@@ -270,24 +252,14 @@ class PhotoEditorView(
     }
 
     fun saveFilter() {
-        previousFilterType = currentFilterType
         currentFilterType = null
+        originalBitmap = imageView.drawable.toBitmap()
     }
 
     fun exitFilter() {
-        val bitmap = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
-        val filteredBitmap =
-            if (previousFilterType != null || previousFilterType == FilterType.NONE) FilterManager.applyFilter(
-                bitmap!!,
-                previousFilterType!!
-            )
-            else bitmap
-
-        originalBitmap = filteredBitmap
-        imageView.setImageBitmap(filteredBitmap)
         currentFilterType = null
+        isFilterMode = false
     }
-
     fun addSticker(stickerBitmap: Bitmap) {
         val stickerView = StickerView(context).apply {
 

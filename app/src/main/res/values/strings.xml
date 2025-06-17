@@ -26,4 +26,7 @@
     <string name="edit">Edit</string>
     <string name="share">Share</string>
     <string name="restore">Restore</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="error_when_crroped_photo">Error When Cropped Photo</string>
 </resources>

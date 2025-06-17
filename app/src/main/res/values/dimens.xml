@@ -41,4 +41,7 @@
     <dimen name="size_2">2dp</dimen>
     <dimen name="size_4">4dp</dimen>
     <dimen name="font_10">10dp</dimen>
+    <dimen name="size_180">180dp</dimen>
+    <dimen name="size_350">350dp</dimen>
+    <dimen name="size_400">400dp</dimen>
 </resources>

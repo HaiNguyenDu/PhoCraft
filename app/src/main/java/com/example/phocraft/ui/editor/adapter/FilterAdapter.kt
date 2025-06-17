@@ -49,8 +49,10 @@ class FilterAdapter(
         if (foundIndex != -1) {
             newPosition = foundIndex
         }
+        selectedPosition = newPosition
         notifyItemChanged(oldPosition)
         notifyItemChanged(selectedPosition)
+        onClickItem(listFilters[selectedPosition])
     }
 
     inner class FilterAdapterViewHolder(private val binding: ItemFilterBinding) :

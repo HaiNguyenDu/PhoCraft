@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
@@ -73,7 +72,6 @@ class CameraActivity : AppCompatActivity() {
                     )
         }
 
-        cameraExecutor = Executors.newSingleThreadExecutor()
         startCamera()
         setupClickListeners()
         observeViewModel()
@@ -154,13 +152,14 @@ class CameraActivity : AppCompatActivity() {
         binding.btnSize.setOnClickListener { toggleSizeControlsVisibility() }
         binding.btnTimer.setOnClickListener { toggleTimerControlsVisibility() }
         binding.btnFilter.setOnClickListener { toggleFilterControlsVisibility() }
-
+        binding.btnClose.setOnClickListener { finish() }
         setupSizeOptionClickListeners()
         setupTimerOptionClickListeners()
         setUpFilterOptionsClick()
     }
 
     private fun startCamera() {
+        cameraExecutor = Executors.newSingleThreadExecutor()
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             this.cameraProvider = cameraProviderFuture.get()
@@ -176,7 +175,8 @@ class CameraActivity : AppCompatActivity() {
             it.setSurfaceProvider(binding.previewView.surfaceProvider)
         }
 
-        imageCapture = ImageCapture.Builder().build()
+        imageCapture = ImageCapture.Builder()
+            .build()
 
 
         val isFront = state.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
@@ -203,7 +203,6 @@ class CameraActivity : AppCompatActivity() {
             renderUi(state)
             setupBrightnessControls()
         } catch (exc: Exception) {
-            Log.e("CameraX", "Use case binding failed", exc)
         }
     }
 
@@ -259,6 +258,12 @@ class CameraActivity : AppCompatActivity() {
                 viewModel.onFilterSelected(FilterMode.NONE, null)
                 selectFilterMode(it)
             }
+//            optionFilterUnicorn.setOnClickListener {
+//                val bitmap =
+//                    BitmapFactory.decodeResource(resources, R.drawable.filter_unicorn)
+//                viewModel.onFilterSelected(FilterMode.HEAD, bitmap)
+//                selectFilterMode(it)
+//            }
         }
     }
 
@@ -281,13 +286,16 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun toggleMainControlsGroupVisibility() {
-        val layout = binding.layoutBtn
-        val isExpanding = layout.isGone
+        val isExpanding = binding.layoutBtn.isGone
+        Glide.with(this).load(
+            if (isExpanding) R.drawable.ic_arrow_up
+            else R.drawable.ic_arrow_down
+        ).into(binding.icBtnArrow)
         val animationRes =
             if (isExpanding) R.anim.slide_bottom_to_top else R.anim.slide_top_to_bottom
         val animation = AnimationUtils.loadAnimation(this, animationRes)
-        layout.startAnimation(animation)
-        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        binding.layoutBtn.startAnimation(animation)
+        binding.layoutBtn.visibility = if (isExpanding) View.VISIBLE else View.GONE
     }
 
     private fun selectFilterMode(view: View) {
@@ -332,12 +340,11 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun toggleTimerControlsVisibility() {
-        val layout = binding.layoutTimer
-        val isExpanding = layout.visibility != View.VISIBLE
+        val isExpanding = binding.layoutTimer.visibility != View.VISIBLE
         TransitionManager.beginDelayedTransition(
             binding.layoutBtn,
             AutoTransition().apply { duration = 200 })
-        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        binding.layoutTimer.visibility = if (isExpanding) View.VISIBLE else View.GONE
         setOtherButtonsVisibility(
             binding.layoutBtn,
             listOf(binding.layoutBtnTimer),
@@ -361,12 +368,12 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun toggleSizeControlsVisibility() {
-        val layout = binding.layoutSize
-        val isExpanding = layout.visibility != View.VISIBLE
+        binding.layoutSize
+        val isExpanding = binding.layoutSize.visibility != View.VISIBLE
         TransitionManager.beginDelayedTransition(
             binding.layoutBtn,
             AutoTransition().apply { duration = 200 })
-        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        binding.layoutSize.visibility = if (isExpanding) View.VISIBLE else View.GONE
         setOtherButtonsVisibility(
             binding.layoutBtn,
             listOf(binding.layoutBtnSize),
@@ -375,12 +382,11 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun toggleBrightnessControlsVisibility() {
-        val layout = binding.layoutSeekBar
-        val isExpanding = layout.visibility != View.VISIBLE
+        val isExpanding =  binding.layoutSeekBar.visibility != View.VISIBLE
         TransitionManager.beginDelayedTransition(
             binding.layoutBtn,
             AutoTransition().apply { duration = 200 })
-        layout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+        binding.layoutSeekBar.visibility = if (isExpanding) View.VISIBLE else View.GONE
         setOtherButtonsVisibility(
             binding.layoutBtn,
             listOf(binding.btnLightLayout),

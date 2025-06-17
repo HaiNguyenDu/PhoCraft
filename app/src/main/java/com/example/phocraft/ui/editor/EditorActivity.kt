@@ -25,11 +25,13 @@ import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityEditorBinding
 import com.example.phocraft.enum.AdjustmentsState
 import com.example.phocraft.enum.EditingUiState
+import com.example.phocraft.enum.FilterType
 import com.example.phocraft.ui.editor.adapter.ColorAdapter
 import com.example.phocraft.ui.editor.adapter.FilterAdapter
 import com.example.phocraft.ui.editor.adapter.FontAdapter
 import com.example.phocraft.ui.editor.adapter.StickerAdapter
 import com.example.phocraft.ui.home.HomeActivity
+import com.example.phocraft.ui.save_screen.SaveActivity
 import com.example.phocraft.utils.BitmapCacheManager
 import com.example.phocraft.utils.CONVERT_PAINT_WIDTH
 import com.example.phocraft.utils.CURRENT_PHOTO_KEY
@@ -78,7 +80,7 @@ class EditorActivity : AppCompatActivity() {
         val currentPhoto = BitmapCacheManager.getBitmapFromMemCache(CURRENT_PHOTO_KEY)
 
         if (currentPhoto == null) {
-            Toast.makeText(this, "Không thể tải ảnh", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Cannot load Image", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -125,9 +127,6 @@ class EditorActivity : AppCompatActivity() {
         filterAdapter = FilterAdapter(
             viewModel.filters.value!!
         ) { filter ->
-            binding.rcvFilter.children.forEach {
-
-            }
             viewModel.viewModelScope.launch {
                 viewModel.runWithLoading {
                     binding.imageEditorView.setFilter(filter)
@@ -362,8 +361,6 @@ class EditorActivity : AppCompatActivity() {
     }
 
     private fun onFilterState() {
-        val currentFilterType = binding.imageEditorView.getFilterType()
-        filterAdapter.setCurrentFilter(currentFilterType)
         setOtherButtonsVisibility(
             binding.layoutBtn, listOf(), View.GONE
         )
@@ -373,6 +370,8 @@ class EditorActivity : AppCompatActivity() {
             btnRestore.visibility = View.GONE
             rcvFilter.fadeIn()
         }
+        binding.imageEditorView.setFilterMode(true)
+        filterAdapter.setCurrentFilter(FilterType.NONE)
     }
 
     private fun setFocusBtnAdjustments(view: View? = null) {
@@ -431,7 +430,10 @@ class EditorActivity : AppCompatActivity() {
                 ConfirmDialog.show(this@EditorActivity) {
                     imageEditorView.clearAllLayers()
                     val image = BitmapCacheManager.getBitmapFromMemCache(PREVIOUS_PHOTO_KEY)
-                    imageEditorView.setImageBitmap(image!!)
+                    BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
+                    if (image == null) return@show
+                    BitmapCacheManager.addBitmapToMemoryCache(CURRENT_PHOTO_KEY, image)
+                    imageEditorView.setImageBitmap(image)
                 }
             }
             btnSaveCircle.setOnClickListener {
@@ -459,6 +461,17 @@ class EditorActivity : AppCompatActivity() {
                 }
                 viewModel.setUiState(EditingUiState.MAIN)
 
+            }
+            btnSave.setOnClickListener {
+                val bitmap = imageEditorView.getBitmap()
+                val uri = viewModel.saveImageToGallery(bitmap)
+                if (uri == null) {
+                    return@setOnClickListener
+                } else {
+                    startActivity(Intent(this@EditorActivity, SaveActivity::class.java).apply {
+                        putExtra("Uri", uri.toString())
+                    })
+                }
             }
             btnSticker.setOnClickListener { viewModel.setUiState(EditingUiState.STICKER) }
             btnCrop.setOnClickListener { viewModel.setUiState(EditingUiState.CROP) }
@@ -650,7 +663,7 @@ class EditorActivity : AppCompatActivity() {
                     originalCropHeight = originalBitmap.height - originalCropY
                 }
 
-                val croppedHighQualityBitmap = Bitmap.createBitmap(
+                val croppedBitmap = Bitmap.createBitmap(
                     originalBitmap,
                     originalCropX,
                     originalCropY,
@@ -670,10 +683,15 @@ class EditorActivity : AppCompatActivity() {
                 BitmapCacheManager.removeBitmapFromMemoryCache(CURRENT_PHOTO_KEY)
                 BitmapCacheManager.addBitmapToMemoryCache(CURRENT_PHOTO_KEY, bitmapDraw)
                 binding.imageEditorView.clearAllLayers()
-                binding.imageEditorView.setImageBitmap(croppedHighQualityBitmap)
+                binding.imageEditorView.setImageBitmap(croppedBitmap)
 
             } else {
-                Toast.makeText(this, "Lỗi khi cắt ảnh", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    getString(R.string.error_when_crroped_photo),
+                    Toast.LENGTH_SHORT
+                ).show()
+                onMainState()
             }
         }
 

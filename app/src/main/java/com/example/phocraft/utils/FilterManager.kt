@@ -14,10 +14,6 @@ import kotlin.random.Random
 object FilterManager {
     fun applyFilter(originalBitmap: Bitmap, filterType: FilterType): Bitmap {
         if (originalBitmap.width <= 0 || originalBitmap.height <= 0) {
-            Log.e(
-                "FilterManager",
-                "Không thể áp dụng filter cho bitmap có kích thước không hợp lệ."
-            )
             return originalBitmap
         }
 

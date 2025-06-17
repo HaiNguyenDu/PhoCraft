@@ -13,8 +13,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.phocraft.R
 import com.example.phocraft.databinding.ActivityHomeBinding
 import com.example.phocraft.ui.camera.CameraActivity
@@ -35,6 +33,8 @@ class HomeActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             when {
                 granted -> {
+                    binding.tvPs.visibility = View.GONE
+                    binding.btnRequest.visibility = View.GONE
                     setUpUi()
                 }
 
@@ -76,8 +76,20 @@ class HomeActivity : AppCompatActivity() {
                 }
             } else {
                 checkPermissionCamera()
+
             }
         }
+
+    override fun onResume() {
+        super.onResume()
+        if (isHasPermission(this, IMAGE_PERMISSION)) {
+            binding.apply {
+                btnRequest.visibility = View.GONE
+                tvPs.visibility = View.GONE
+            }
+            setUpUi()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,6 +112,7 @@ class HomeActivity : AppCompatActivity() {
         setUpBtn()
     }
 
+
     private fun setUpUi() {
         val tabTitles = arrayOf(RECENT_FRAGMENT, FAVOURITE_FRAGMENT, SELFIES_FRAGMENT)
 
@@ -118,6 +131,9 @@ class HomeActivity : AppCompatActivity() {
     private fun setUpBtn() {
         binding.btnCamera.setOnClickListener {
             checkPermissionCamera()
+        }
+        binding.btnRequest.setOnClickListener {
+            requestPermissionImage()
         }
     }
 
